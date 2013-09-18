@@ -21,4 +21,9 @@
     <string name="noUsernameError">Please enter your username</string>
     <string name="noGroupNameError">Please enter a group name</string>
     
+    <!-- Layout: activity_idea_maker.xml -->
+    <string name="iv_canvas_description">Canvas</string>
+    <string name="iv_search_result_description">Search result</string>
+    
+    
 </resources>
