@@ -18,5 +18,7 @@
     <string name="action_bar_send">Send</string>
     <string name="action_bar_search">Search</string>
     <string name="action_bar_search_hint">Search text &#8230;</string>
+    <string name="noUsernameError">Please enter your username</string>
+    <string name="noGroupNameError">Please enter a group name</string>
     
 </resources>
