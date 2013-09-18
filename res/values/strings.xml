@@ -19,4 +19,9 @@
     <string name="action_bar_search">Search</string>
     <string name="action_bar_search_hint">Search text &#8230;</string>
     
+    <!-- Layout: activity_idea_maker.xml -->
+    <string name="iv_canvas_description">Canvas</string>
+    <string name="iv_search_result_description">Search result</string>
+    
+    
 </resources>
