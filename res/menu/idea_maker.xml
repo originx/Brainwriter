@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:brainwriting="http://schemas.android.com/apk/res-auto" >
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ib_search"
+        android:title="@string/action_bar_search"
+        brainwriting:actionViewClass="android.support.v7.widget.SearchView"
+        brainwriting:showAsAction="ifRoom|collapseActionView"/>
+    <item
+        android:id="@+id/action_send"
+        android:icon="@drawable/ib_send_idea"
+        android:title="@string/action_bar_send"
+        brainwriting:showAsAction="always|withText"/>
+ 
+</menu>
