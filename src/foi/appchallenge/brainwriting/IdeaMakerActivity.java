@@ -78,6 +78,11 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 	private int canvasBackgroundColorId = 0xffffffff;
 	private int brushStrokeWidth = 5;
 	private int textSize = 20;
+	
+	
+	private int brushColorId;
+	
+	
 	String inputTextString = "";
 
 	// coordinates to shift the view by
@@ -176,7 +181,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		sv = (ScrollView) findViewById(R.id.sv);
 		hsv = (HorizontalScrollView) findViewById(R.id.hsv);
 
-<<<<<<< HEAD
+
 		// for smaller bitmap use different config
 		Bitmap.Config conf = Bitmap.Config.ARGB_8888;
 
@@ -205,11 +210,11 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		paint.setStrokeJoin(Paint.Join.ROUND);
 		paint.setStrokeCap(Paint.Cap.ROUND);
 		paint.setAntiAlias(true);
-=======
+
 		if(!imageLoaded || bmp==null){//if image isnt loaded create new bmp
 			prepareEmptyCanvas();
 		}
->>>>>>> origin/mad-gf-file-save-bug-branch
+
 
 
 		
@@ -306,13 +311,6 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 
 						
 							drawOnCanvas();
-<<<<<<< HEAD
-						
-						
-
-=======
-						}
->>>>>>> origin/mad-gf-file-save-bug-branch
 						break;
 					case MotionEvent.ACTION_UP:
 						break;
