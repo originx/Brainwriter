@@ -19,8 +19,8 @@ public class DBHelper extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 		//database = db;
 
-		db.execSQL("CREATE TABLE idea (id INTEGER PRIMARY KEY, creator VARCHAR(50), img_width INTEGER, img_height INTEGER, img_name VARCHAR(100))");
-		db.execSQL("CREATE TABLE note (id INTEGER PRIMARY KEY, note_text TEXT, x INTEGER, y INETEGER, idea_id INTEGER)");
+		db.execSQL("CREATE TABLE idea (id INTEGER PRIMARY KEY AUTOINCREMENT, creator VARCHAR(50), img_width INTEGER, img_height INTEGER, img_name VARCHAR(100))");
+		db.execSQL("CREATE TABLE note (id INTEGER PRIMARY KEY AUTOINCREMENT, note_text TEXT, x INTEGER, y INETEGER, idea_id INTEGER)");
 		
 	}
 
