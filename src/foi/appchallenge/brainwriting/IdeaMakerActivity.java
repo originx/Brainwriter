@@ -4,27 +4,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 
-
-import foi.appchallenge.brainwriting.asyncTasks.CheckRoundStatusTask;
-import foi.appchallenge.brainwriting.asyncTasks.SubmitIdeasTask;
-import foi.appchallenge.brainwriting.interfaces.IResponseListener;
-import foi.appchallenge.brainwriting.modules.PostParameters;
-
-import foi.appchallenge.brainwriting.services.CountDownTimerService;
-
-import foi.appchallenge.helpers.HSVColorPickerDialog;
-import foi.appchallenge.helpers.HSVColorPickerDialog.OnColorSelectedListener;
 import android.app.Activity;
 import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.app.ActivityManager.RunningServiceInfo;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.content.Intent;
 import android.content.IntentFilter;
-
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -34,10 +23,7 @@ import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
-
 import android.preference.PreferenceManager;
-import android.support.v4.view.MenuItemCompat;
-
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.OnNavigationListener;
 import android.support.v7.app.ActionBarActivity;
@@ -62,6 +48,13 @@ import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.SpinnerAdapter;
 import android.widget.Toast;
+import foi.appchallenge.brainwriting.asyncTasks.CheckRoundStatusTask;
+import foi.appchallenge.brainwriting.asyncTasks.SubmitIdeasTask;
+import foi.appchallenge.brainwriting.interfaces.IResponseListener;
+import foi.appchallenge.brainwriting.modules.PostParameters;
+import foi.appchallenge.brainwriting.services.CountDownTimerService;
+import foi.appchallenge.helpers.HSVColorPickerDialog;
+import foi.appchallenge.helpers.HSVColorPickerDialog.OnColorSelectedListener;
 
 public class IdeaMakerActivity extends ActionBarActivity {
 
@@ -97,7 +90,6 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private int brushStrokeWidth = 5;
 	private int textSize = 20;
 
-
 	String inputTextString = "";
 
 	// coordinates to shift the view by
@@ -109,19 +101,16 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private float x = -1; // -1 means coordinate is not OK to use
 	private float y = -1;
 
-
 	// previous idea on which we worked on
 	private int previousIdea = 0;
 	private boolean imageLoaded = false;
-	//shared preferences
+	// shared preferences
 	private SharedPreferences prefs;
-	private  SharedPreferences.Editor editor;
-	//current round number
+	private SharedPreferences.Editor editor;
+	// current round number
 	private String currentRound;
 
 	MenuItem countdownTimer;
-	
-	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -130,15 +119,14 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		context = this;
 		final ActionBar actionBar = getSupportActionBar();
 
-		if(!isMyServiceRunning()){
+		if (!isMyServiceRunning()) {
 			startService(new Intent(context, CountDownTimerService.class));
 			registerReceiver(uiUpdated, new IntentFilter("COUNTDOWN_UPDATED"));
 			Log.d("SERVICE", "STARTED!");
-		}else
-		{
+		} else {
 			Log.d("SERVICE", "RUNING!");
 		}
-		
+
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setDisplayOptions(actionBar.getDisplayOptions()
 				^ ActionBar.DISPLAY_SHOW_TITLE);
@@ -160,57 +148,6 @@ public class IdeaMakerActivity extends ActionBarActivity {
 				return true;
 			}
 
-			/**
-			 * Saves current idea and loads picked one if exists
-			 * 
-			 * @param position
-			 *            current position of idea
-			 */
-			private void manageIdeas(int position) {
-				// if we switched idea
-				if (previousIdea != position) {
-					// get root folder
-					String root = Environment.getExternalStorageDirectory()
-							.toString();
-					File myDir = new File(root + "/Brainwriter/my_ideas");
-					myDir.mkdirs();
-					// create new image file
-					String fname = "image" + String.valueOf(previousIdea + 1)
-							+ ".png";
-					File file = new File(myDir, fname);
-					// if that file exists delete it to create new one
-					if (file.exists())
-						file.delete();
-					try {
-						// save file
-						FileOutputStream out = new FileOutputStream(file);
-						bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
-						out.flush();
-						out.close();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-
-					BitmapFactory.Options options = new BitmapFactory.Options();
-					options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-					// load file if exists
-					File imgFile = new File(myDir + "/image"
-							+ String.valueOf(position + 1) + ".png");
-					if (!imgFile.exists()) {
-						// if there isn't a file to load prepare empty canvas
-						prepareEmptyCanvas();
-					} else {
-						// if there is a file prepare canvas with loaded image
-						Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile
-								.getAbsolutePath());
-						bmp = mutableBitmap.copy(Bitmap.Config.ARGB_8888, true);
-						prepareLoadedCanvas(bmp);
-					}
-				}
-				imageLoaded = true;// sets that we loaded image
-				// save previous position
-				previousIdea = position;
-			}
 		};
 
 		actionBar.setListNavigationCallbacks(mSpinnerAdapter,
@@ -410,94 +347,63 @@ public class IdeaMakerActivity extends ActionBarActivity {
 			}
 		});
 
-		prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		currentRound=prefs.getString("round", "1");
-		CheckRoundStatusTask chkRound = new CheckRoundStatusTask(this, currentRound);
-		
-		chkRound.setListener(new IResponseListener() {
+	}
+
+	private void uploadFilesResetRound(final ActionBar actionBar,
+			String username, String groupName, String[] text) {
+		ArrayList<Bitmap> bitmapArray = new ArrayList<Bitmap>();
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+		for (int i = 0; i < 3; i++) {
+			// get root folder
+			String root = Environment.getExternalStorageDirectory().toString();
+			File myDir = new File(root + "/Brainwriter/my_ideas");
+			myDir.mkdirs();
+			// load file if exists
+			File imgFile = new File(myDir + "/image" + String.valueOf(i + 1)
+					+ ".png");
+			if (imgFile.exists()) {
+				Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile
+						.getAbsolutePath());
+				bitmapArray.add(mutableBitmap);
+			}
+		}
+
+		SubmitIdeasTask submitIdeas = new SubmitIdeasTask();
+		submitIdeas.setListener(new IResponseListener() {
+
 			@Override
 			public void responseSuccess(String data) {
-
-				 editor = prefs.edit();
-				int rnd =(Integer.parseInt(currentRound)+1);
-				 currentRound=String.valueOf(rnd);
-				 editor.putString("round", currentRound);
-				 String username=prefs.getString("username", "");
-				 String groupName=prefs.getString("groupName", "");
-				 
-				 //TODO add text from db here
-				 String [] text= {"test1","test2","test3"};
-				 
-				 uploadFilesResetRound(actionBar, username, groupName, text);
-				 
-				
-			}
-
-			private void uploadFilesResetRound(final ActionBar actionBar,
-					String username, String groupName, String[] text) {
-				ArrayList<Bitmap> bitmapArray = new ArrayList<Bitmap>();
-				 BitmapFactory.Options options = new BitmapFactory.Options();
-					options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-				 for (int i = 0; i < 3; i++) {
-						// get root folder
-						String root = Environment.getExternalStorageDirectory()
-								.toString();
-						File myDir = new File(root + "/Brainwriter/my_ideas");
-						myDir.mkdirs();
-						// load file if exists
-						File imgFile = new File(myDir + "/image"
-								+ String.valueOf(i + 1) + ".png");
-						if (imgFile.exists()) {
-							Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile
-									.getAbsolutePath());
-							bitmapArray.add(mutableBitmap);
-						} 
+				for (int i = 0; i < 3; i++) {
+					// get root folder
+					String root = Environment.getExternalStorageDirectory()
+							.toString();
+					File myDir = new File(root + "/Brainwriter/my_ideas");
+					myDir.mkdirs();
+					// load file if exists
+					File imgFile = new File(myDir + "/image"
+							+ String.valueOf(i + 1) + ".png");
+					if (imgFile.exists()) {
+						imgFile.delete();
+					}
 				}
-				 
-				 SubmitIdeasTask submitIdeas= new SubmitIdeasTask();
-					submitIdeas.setListener(new IResponseListener() {
-						
-						@Override
-						public void responseSuccess(String data) {
-							for (int i = 0; i < 3; i++) {
-								// get root folder
-								String root = Environment.getExternalStorageDirectory()
-										.toString();
-								File myDir = new File(root + "/Brainwriter/my_ideas");
-								myDir.mkdirs();
-								// load file if exists
-								File imgFile = new File(myDir + "/image"
-										+ String.valueOf(i + 1) + ".png");
-								if (imgFile.exists()) {
-									imgFile.delete();
-								} 
-						}
-							
-							actionBar.setSelectedNavigationItem(0);
-							previousIdea=0;
-						}
-						
-						@Override
-						public void responseFail() {
-							
-						}
-					});
-					PostParameters p = new PostParameters();
-					p.b=bitmapArray.toArray();
-					p.groupName=groupName;
-					p.userName=username;
-					p.text=text;
 
-					submitIdeas.execute(p);
+				actionBar.setSelectedNavigationItem(0);
+				previousIdea = 0;
 			}
-			
+
 			@Override
 			public void responseFail() {
-				// :v
-				
+
 			}
 		});
-		
+		PostParameters p = new PostParameters();
+		p.b = bitmapArray.toArray();
+		p.groupName = groupName;
+		p.userName = username;
+		p.text = text;
+
+		submitIdeas.execute(p);
 	}
 
 	private void prepareEmptyCanvas() {
@@ -571,38 +477,39 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.idea_maker, menu);
-		/*MenuItem search = menu.findItem(R.id.action_search);
-		SearchView searchView = (SearchView) MenuItemCompat
-				.getActionView(search);
-		searchView.setQueryHint(context.getResources().getString(
-				R.string.action_bar_search_hint));
-		searchView.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-
-			}
-		});*/
+		/*
+		 * MenuItem search = menu.findItem(R.id.action_search); SearchView
+		 * searchView = (SearchView) MenuItemCompat .getActionView(search);
+		 * searchView.setQueryHint(context.getResources().getString(
+		 * R.string.action_bar_search_hint)); searchView.setOnClickListener(new
+		 * OnClickListener() {
+		 * 
+		 * @Override public void onClick(View v) {
+		 * 
+		 * } });
+		 */
 
 		return super.onCreateOptionsMenu(menu);
 	}
-	
+
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		//getMenuInflater().inflate(R.menu.idea_maker, menu);
+		// getMenuInflater().inflate(R.menu.idea_maker, menu);
 		countdownTimer = menu.findItem(R.id.action_countdown_timer);
-		
+
 		return super.onPrepareOptionsMenu(menu);
 	}
-	
-	private BroadcastReceiver uiUpdated= new BroadcastReceiver() {
 
-	    @Override
-	    public void onReceive(Context context, Intent intent) {
+	private BroadcastReceiver uiUpdated = new BroadcastReceiver() {
 
-	    	countdownTimer.setTitle(intent.getExtras().getString("countdown"));
+		@Override
+		public void onReceive(Context context, Intent intent) {
 
-	    }
+			countdownTimer.setTitle(intent.getExtras().getString("countdown"));
+			if (intent.getExtras().getString("countdown").equals("Sended!")) {
+				sendData();
+			}
+		}
 	};
 
 	@Override
@@ -614,16 +521,58 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		 * Toast.LENGTH_SHORT).show(); return true;
 		 */
 		case R.id.action_send:
-			
-			stopService(new Intent(context,CountDownTimerService.class));
+
+			stopService(new Intent(context, CountDownTimerService.class));
 			Log.d("SERVICE", "STOPED!");
 			unregisterReceiver(uiUpdated);
 			Toast.makeText(context, "SEND", Toast.LENGTH_SHORT).show();
-			// TODO upload images and wait for another round
+			sendData();
+
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+
+	private void sendData() {
+		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		currentRound = prefs.getString("round", "1");
+		String username = prefs.getString("username", "");
+		String groupName = prefs.getString("groupName", "");
+		manageIdeas(previousIdea);
+		prepareEmptyCanvas();
+		// TODO add text from db here
+		String[] text = { "test1", "test2", "test3" };
+		final ActionBar actionBar = getSupportActionBar();
+		uploadFilesResetRound(actionBar, username, groupName, text);
+		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		currentRound = prefs.getString("round", "1");
+		CheckRoundStatusTask chkRound = new CheckRoundStatusTask(this,
+				currentRound);
+		if (isMyServiceRunning()) {
+			stopService(new Intent(context, CountDownTimerService.class));
+			startService(new Intent(context, CountDownTimerService.class));
+		}
+
+		chkRound.setListener(new IResponseListener() {
+			@Override
+			public void responseSuccess(String data) {
+				Intent intent = getIntent();
+				overridePendingTransition(0, 0);
+				intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+				finish();
+				overridePendingTransition(0, 0);
+				startActivity(intent);
+
+			}
+
+			@Override
+			public void responseFail() {
+				// :v
+
+			}
+		});
+		chkRound.execute(groupName);
 	}
 
 	public void showDialogInputText(final float xPath, final float yPath) {
@@ -695,25 +644,94 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	 * @param e
 	 * @return X and Y coordinates
 	 */
-	public static float[] getRelativeCoords(Activity activity, 
-		    MotionEvent e){
-		    // MapView
-		    View contentView= activity.getWindow().
-		        findViewById(Window.ID_ANDROID_CONTENT);
-		    return new float[] {
-		        e.getRawX() - contentView.getLeft(),
-		        e.getRawY() - contentView.getTop()};
+	public static float[] getRelativeCoords(Activity activity, MotionEvent e) {
+		// MapView
+		View contentView = activity.getWindow().findViewById(
+				Window.ID_ANDROID_CONTENT);
+		return new float[] { e.getRawX() - contentView.getLeft(),
+				e.getRawY() - contentView.getTop() };
+	}
+
+	public boolean isMyServiceRunning() {
+		ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+		for (RunningServiceInfo service : manager
+				.getRunningServices(Integer.MAX_VALUE)) {
+			if (CountDownTimerService.class.getName().equals(
+					service.service.getClassName())) {
+				return true;
+			}
 		}
+		return false;
+	}
 
-    public boolean isMyServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (CountDownTimerService.class.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-	
+	/**
+	 * Saves current idea and loads picked one if exists
+	 * 
+	 * @param position
+	 *            current position of idea
+	 */
+	private void manageIdeas(int position) {
+		// if we switched idea
+		if (previousIdea != position) {
+			// get root folder
+			String root = Environment.getExternalStorageDirectory().toString();
+			File myDir = new File(root + "/Brainwriter/my_ideas");
+			myDir.mkdirs();
+			// create new image file
+			String fname = "image" + String.valueOf(previousIdea + 1) + ".png";
+			File file = new File(myDir, fname);
+			// if that file exists delete it to create new one
+			if (file.exists())
+				file.delete();
+			try {
+				// save file
+				FileOutputStream out = new FileOutputStream(file);
+				bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
+				out.flush();
+				out.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+			// load file if exists
+			File imgFile = new File(myDir + "/image"
+					+ String.valueOf(position + 1) + ".png");
+			if (!imgFile.exists()) {
+				// if there isn't a file to load prepare empty canvas
+				prepareEmptyCanvas();
+			} else {
+				// if there is a file prepare canvas with loaded image
+				Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile
+						.getAbsolutePath());
+				bmp = mutableBitmap.copy(Bitmap.Config.ARGB_8888, true);
+				prepareLoadedCanvas(bmp);
+			}
+		} else {
+			// get root folder
+			String root = Environment.getExternalStorageDirectory().toString();
+			File myDir = new File(root + "/Brainwriter/my_ideas");
+			myDir.mkdirs();
+			// create new image file
+			String fname = "image" + String.valueOf(previousIdea + 1) + ".png";
+			File file = new File(myDir, fname);
+			// if that file exists delete it to create new one
+			if (file.exists())
+				file.delete();
+			try {
+				// save file
+				FileOutputStream out = new FileOutputStream(file);
+				bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
+				out.flush();
+				out.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+		imageLoaded = true;// sets that we loaded image
+		// save previous position
+		previousIdea = position;
+	}
 }
