@@ -6,27 +6,29 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
-
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-
-import foi.appchallenge.brainwriting.modules.JSONFunctions;
+import foi.appchallenge.brainwriting.asyncTasks.CheckServerStatusTask;
+import foi.appchallenge.brainwriting.interfaces.IResponseListener;
 
 public class MainActivity extends ActionBarActivity {
 
 	Context context;
 	EditText groupName;
     EditText username;
+    TextView statusText;
+    boolean connecting=false;
+	private long lastPressedTime;
+	private static final int PERIOD = 2000;
     //shared preferences
     private SharedPreferences prefs;
+    //private String roundNumber ="0";  //for later use
+    private CheckServerStatusTask checkStatus;
     SharedPreferences.Editor editor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +38,7 @@ public class MainActivity extends ActionBarActivity {
         groupName = (EditText)findViewById(R.id.et_group_name);
         username = (EditText)findViewById(R.id.et_username);
         ImageButton start = (ImageButton)findViewById(R.id.b_start);
+        statusText= (TextView)findViewById(R.id.statusText);
         //create preferences manager for saving username
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         editor = prefs.edit();
@@ -58,44 +61,52 @@ public class MainActivity extends ActionBarActivity {
 				if(groupName.getText().toString()==""){
 					Toast.makeText(context, R.string.noGroupNameError, Toast.LENGTH_SHORT).show();
 				}else{
+					//put group name in preferences
 					editor.putString("groupName", groupName.getText().toString());
 					editor.commit();
-					final RequestParams params = new RequestParams();
-					 params.put("group",  groupName.getText().toString());
-					AsyncHttpClient client = new AsyncHttpClient();
-					client.get("http://evodeployment.evolaris.net/brainwriting/status", params,new AsyncHttpResponseHandler() {
-					
+					//create asynctask
+					checkStatus = new CheckServerStatusTask(MainActivity.this);
+					checkStatus.setListener(new IResponseListener() {
+						
 						@Override
-					    public void onSuccess(String response) {
-							String roundNumber = JSONFunctions.getRoundNumber(response);
-							if(true){
-								AsyncHttpClient c2 = new AsyncHttpClient();
-								c2.get("http://evodeployment.evolaris.net/brainwriting/start", params, new AsyncHttpResponseHandler() {
-									
-									@Override public void onSuccess(String response) {
-										//TODO remove this info
-										Toast.makeText(context, "created group"+"faadfsfads", Toast.LENGTH_SHORT).show();
-										Intent i = new Intent(context, IdeaMakerActivity.class);
-										startActivity(i);
-									}
-								});
-								
-
-
-							}else{
-								//TODO remove this info
-								Toast.makeText(context, "created group", Toast.LENGTH_SHORT).show();
-								Intent i = new Intent(context, IdeaMakerActivity.class);
-								startActivity(i);	
-							}
-					    }
-					});				
+						public void responseSuccess(String data) {//if successfull response login
+							Intent i = new Intent(context, IdeaMakerActivity.class);
+							startActivity(i);
+						}
+						@Override
+						public void responseFail() {
+							//TODO possible notification about already started group etc via callback
+							Toast.makeText(context, R.string.noGroupNameError, Toast.LENGTH_SHORT).show();
+						}
+					});
+					
+					checkStatus.execute(groupName.getText().toString());
+					statusText.setText(R.string.connectingText);
+					connecting=true;
 				}	
 			}
-		});
-        
+		});         
     }
-    
-    
-    
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+	    if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+	        switch (event.getAction()) {
+	        case KeyEvent.ACTION_DOWN:
+	            if (event.getDownTime() - lastPressedTime < PERIOD) {
+	                finish();
+	            } else {
+	            	if(connecting==true){ //if connecting break it and refresh text
+	        			checkStatus.cancel(true);
+	        			statusText.setText(R.string.connectText);
+	        		}
+	                Toast.makeText(getApplicationContext(), R.string.exitBtnText,
+	                        Toast.LENGTH_SHORT).show();
+	                lastPressedTime = event.getEventTime();
+	            }
+	            return true;
+	        }
+	    }
+	    return false;
+	}
 }

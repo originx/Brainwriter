@@ -54,4 +54,10 @@
         android:src="@drawable/button_start"
         android:text="@string/b_start" />
 
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/connectText" />
+
 </LinearLayout>
