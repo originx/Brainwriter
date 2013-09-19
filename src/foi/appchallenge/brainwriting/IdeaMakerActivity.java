@@ -1,5 +1,8 @@
 package foi.appchallenge.brainwriting;
 
+import java.io.File;
+import java.io.FileOutputStream;
+
 import foi.appchallenge.helpers.HSVColorPickerDialog;
 import foi.appchallenge.helpers.HSVColorPickerDialog.OnColorSelectedListener;
 import android.app.Activity;
@@ -7,12 +10,14 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.OnNavigationListener;
@@ -84,6 +89,9 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 	private float x = -1; // -1 means coordinate is not OK to use
 	private float y = -1;
 
+	//previous idea on which we worked on
+	private int previousIdea=0;
+	private boolean imageLoaded=false;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -106,14 +114,60 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 			public boolean onNavigationItemSelected(int position, long itemId) {
 				Toast.makeText(context, ideas[position].toString(),
 						Toast.LENGTH_SHORT).show();
+
+				//TODO save  text
+				manageIdeas(position);
 				return true;
+			}
+			
+			/**
+			 * Saves current idea and loads picked one if exists
+			 * @param position current position of idea
+			 */
+			private void manageIdeas(int position) {
+				//if we switched idea
+				if(previousIdea!=position){
+				//get root folder
+				String root = Environment.getExternalStorageDirectory().toString();
+				File myDir = new File(root + "/Brainwriter/my_ideas");    
+				myDir.mkdirs();
+				//create new image file
+				String fname = "image"+ String.valueOf(previousIdea+1) +".png";
+				File file = new File (myDir, fname);
+				//if that file exists delete it to create new one
+				if (file.exists ()) file.delete (); 
+				try {
+						//save file
+				       FileOutputStream out = new FileOutputStream(file);
+				       bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
+				       out.flush();
+				       out.close();
+				} catch (Exception e) {
+				       e.printStackTrace();
+				}
+				
+				BitmapFactory.Options options = new BitmapFactory.Options();
+				options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+				//load file if exists
+				File imgFile = new  File(myDir+"/image"+ String.valueOf(position+1) +".png");
+				if(!imgFile.exists()){
+					//if there isn't a file to load prepare empty canvas
+					prepareEmptyCanvas();				
+				}else{
+					//if there is a file prepare canvas with loaded image
+					 Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+					 bmp = mutableBitmap.copy(Bitmap.Config.ARGB_8888, true);
+					prepareLoadedCanvas(bmp);
+				}
+				}
+				imageLoaded=true;//sets that we loaded image
+				//save previous position
+				previousIdea=position;
 			}
 		};
 
 		actionBar.setListNavigationCallbacks(mSpinnerAdapter,
 				mOnNavigationListener);
-
-		
 		shiftX = 0f;
 		shiftY = 0f;
 		
@@ -122,6 +176,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		sv = (ScrollView) findViewById(R.id.sv);
 		hsv = (HorizontalScrollView) findViewById(R.id.hsv);
 
+<<<<<<< HEAD
 		// for smaller bitmap use different config
 		Bitmap.Config conf = Bitmap.Config.ARGB_8888;
 
@@ -150,12 +205,12 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		paint.setStrokeJoin(Paint.Join.ROUND);
 		paint.setStrokeCap(Paint.Cap.ROUND);
 		paint.setAntiAlias(true);
+=======
+		if(!imageLoaded || bmp==null){//if image isnt loaded create new bmp
+			prepareEmptyCanvas();
+		}
+>>>>>>> origin/mad-gf-file-save-bug-branch
 
-		matrix = new Matrix();
-		canvas.drawBitmap(bmp, matrix, paint);
-
-		// attach the canvas to the ImageView
-		ivCanvas.setImageDrawable(new BitmapDrawable(getResources(), bmp));
 
 		
 		colorPicker.setOnClickListener(new OnClickListener() {
@@ -251,9 +306,13 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 
 						
 							drawOnCanvas();
+<<<<<<< HEAD
 						
 						
 
+=======
+						}
+>>>>>>> origin/mad-gf-file-save-bug-branch
 						break;
 					case MotionEvent.ACTION_UP:
 						break;
@@ -274,7 +333,6 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		hsv.setOnTouchListener(new View.OnTouchListener() {
 			private float mx, my, curX, curY;
 			private boolean started = false;
-
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_hand) {
@@ -340,6 +398,60 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 
 	}
 
+	private void prepareEmptyCanvas() {
+		// for smaller bitmap use different config
+				Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+
+				// this creates a MUTABLE bitmap
+				bmp = Bitmap.createBitmap(CANVAS_PX_WIDTH, CANVAS_PX_HEIGHT, conf);
+		canvas = new Canvas(bmp);
+
+		// Fill with some background color
+		canvas.drawColor(canvasBackgroundColorId);
+		colorPicker = (ImageButton)findViewById(R.id.ib_color);
+		colorPicker.setBackgroundColor(0xFF4488CC);
+		brushColorId = 0xFF4488CC;
+		paint = new Paint();
+		// a lot of options
+		paint.setColor(brushColorId);
+		paint.setStrokeWidth(brushStrokeWidth);
+		paint.setDither(true);
+		paint.setStyle(Paint.Style.STROKE);
+		paint.setStrokeJoin(Paint.Join.ROUND);
+		paint.setStrokeCap(Paint.Cap.ROUND);
+		paint.setAntiAlias(true);
+
+		matrix = new Matrix();
+		canvas.drawBitmap(bmp, matrix, paint);
+
+		// attach the canvas to the ImageView
+		ivCanvas.setImageDrawable(new BitmapDrawable(getResources(), bmp));
+	}
+	private void prepareLoadedCanvas(Bitmap bmp) {
+		
+		canvas = new Canvas(bmp);
+
+		// Fill with some background color
+		//canvas.drawColor(canvasBackgroundColorId);
+		colorPicker = (ImageButton)findViewById(R.id.ib_color);
+		colorPicker.setBackgroundColor(0xFF4488CC);
+		brushColorId = 0xFF4488CC;
+		paint = new Paint();
+		// a lot of options
+		paint.setColor(brushColorId);
+		paint.setStrokeWidth(brushStrokeWidth);
+		paint.setDither(true);
+		paint.setStyle(Paint.Style.STROKE);
+		paint.setStrokeJoin(Paint.Join.ROUND);
+		paint.setStrokeCap(Paint.Cap.ROUND);
+		paint.setAntiAlias(true);
+
+		matrix = new Matrix();
+		canvas.drawBitmap(bmp, matrix, paint);
+
+		// attach the canvas to the ImageView
+		ivCanvas.setImageDrawable(new BitmapDrawable(getResources(), bmp));
+	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.idea_maker, menu);
@@ -369,6 +481,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		 */
 		case R.id.action_send:
 			Toast.makeText(context, "SEND", Toast.LENGTH_SHORT).show();
+			//TODO upload images and wait for another round
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
