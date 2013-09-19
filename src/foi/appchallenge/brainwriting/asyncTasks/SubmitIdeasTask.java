@@ -46,9 +46,6 @@ public class SubmitIdeasTask extends AsyncTask<PostParameters, Void, String> {
 		String username=params[0].userName;
 		String [] text = params[0].text;
 		Object [] b = params[0].b;
-		Log.d("DEBUG",text[0].toString());
-		Log.d("DEBUG",text[1].toString());
-		Log.d("DEBUG",text[2].toString());
 		String url = "http://evodeployment.evolaris.net/brainwriting/submit?group="+groupName+"&user="+username;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
             HttpPostClient client = new HttpPostClient(url);

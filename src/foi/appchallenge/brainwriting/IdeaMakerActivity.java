@@ -84,7 +84,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private float downy = 0;
 	private float upx = 0;
 	private float upy = 0;
-
+	private boolean submited=false;
 	// TODO create Settings for this so it can be changed
 	private int canvasBackgroundColorId = 0xffffffff;
 	private int brushStrokeWidth = 5;
@@ -114,6 +114,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_idea_maker);
 		context = this;
@@ -126,7 +127,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		} else {
 			Log.d("SERVICE", "RUNING!");
 		}
-
+		submited=false;
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setDisplayOptions(actionBar.getDisplayOptions()
 				^ ActionBar.DISPLAY_SHOW_TITLE);
@@ -372,6 +373,8 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		SubmitIdeasTask submitIdeas = new SubmitIdeasTask();
 		submitIdeas.setListener(new IResponseListener() {
 
+
+
 			@Override
 			public void responseSuccess(String data) {
 				for (int i = 0; i < 3; i++) {
@@ -390,6 +393,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 				actionBar.setSelectedNavigationItem(0);
 				previousIdea = 0;
+				submited=true;
 			}
 
 			@Override
@@ -521,13 +525,13 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		 * Toast.LENGTH_SHORT).show(); return true;
 		 */
 		case R.id.action_send:
-
-			stopService(new Intent(context, CountDownTimerService.class));
-			Log.d("SERVICE", "STOPED!");
-			unregisterReceiver(uiUpdated);
-			Toast.makeText(context, "SEND", Toast.LENGTH_SHORT).show();
+			if(!submited){
+			
+			Toast.makeText(context, "Sending ideas", Toast.LENGTH_SHORT).show();
 			sendData();
-
+			}else{
+				Toast.makeText(this, R.string.submitedError, Toast.LENGTH_SHORT).show();
+			}
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -539,11 +543,13 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		currentRound = prefs.getString("round", "1");
 		String username = prefs.getString("username", "");
 		String groupName = prefs.getString("groupName", "");
+		
 		manageIdeas(previousIdea);
 		prepareEmptyCanvas();
 		// TODO add text from db here
 		String[] text = { "test1", "test2", "test3" };
 		final ActionBar actionBar = getSupportActionBar();
+		
 		uploadFilesResetRound(actionBar, username, groupName, text);
 		prefs = PreferenceManager.getDefaultSharedPreferences(context);
 		currentRound = prefs.getString("round", "1");
