@@ -2,10 +2,10 @@ package foi.appchallenge.brainwriting;
 
 import foi.appchallenge.helpers.HSVColorPickerDialog;
 import foi.appchallenge.helpers.HSVColorPickerDialog.OnColorSelectedListener;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
@@ -22,8 +22,8 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -198,11 +198,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 					y = e.getY();
 					canvas.drawPoint(x, y, paint);
 					ivCanvas.invalidate();
-					Log.d("gestureDetector:onDown", "x: " + x + " y:" + y);
-					//downx = x;
-					//downy = y;
-					//Toast.makeText(context,  "x: " + x + " y: " + y, Toast.LENGTH_SHORT)
-					//.show();
+					//Log.d("gestureDetector:onDown", "x: " + x + " y:" + y);
 				} else { // if not in brush MOD
 					x = -1;
 					y = -1;
@@ -226,13 +222,14 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 					case MotionEvent.ACTION_DOWN:
 						break;
 					case MotionEvent.ACTION_MOVE:
-						upx = event.getX();
-						upy = event.getY();
+						float[] coords= getRelativeCoords((Activity) context, event);
+				        
+						upx = coords[0];//event.getX();
+						upy = coords[1]; //event.getY();
 
 						
-						if(isUpXOk()){
 							drawOnCanvas();
-						}
+						
 						
 
 						break;
@@ -267,8 +264,6 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 						if (started) {
 							sv.scrollBy(0, dy);
 							hsv.scrollBy(dx, 0);
-							//shiftX += dx;// moves the shifting variables
-							//shiftY += dy;// in the direction of the finger
 						} else {
 							started = true;
 						}
@@ -289,21 +284,16 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 						
 						break;
 					case MotionEvent.ACTION_MOVE:
-						upx = event.getX();
-						upy = event.getY();
+						
+						float[] coords= getRelativeCoords((Activity) context, event);
+				        
+						upx = coords[0];
+						upy = coords[1]; 
 
-						if(isUpXOk()){
 							drawOnCanvas();
-						}
+						
 						break;
 					case MotionEvent.ACTION_UP:
-						//Toast.makeText(context, "action up", Toast.LENGTH_SHORT)
-						//.show();
-						 //upx = event.getX();
-						 //upy = event.getY();
-						 //drawOnCanvas();
-						 //canvas.drawLine(downx, downy, upx, upy, paint);
-						 //ivCanvas.invalidate();
 						break;
 					case MotionEvent.ACTION_CANCEL:
 						break;
@@ -370,17 +360,10 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 				" upx: " + upx + " downy" + downy + " upy: " + upy + " shiftX" + shiftX
 				+ " shiftY: " + shiftY);
 
-		// canvas.drawLine(downx, downy, upx, upy, paint);
 		if (x != -1 && y != -1) {
 			shiftX = x - upx;
 			shiftY = y - upy;
-			//checkAndSetScrollShift();
 			
-			
-			Log.d("drawOnCanvas:ACTION_MOVE2", "downx: " + downx
-					+ " upx: " + upx + " downy" + downy + " upy: " + upy + " shiftX" + shiftX
-					+ " shiftY: " + shiftY);
-			//canvas.drawLine(x, y, upx + shiftX, upy + shiftY, paint);
 			x = -1;
 			y = -1;
 		} else {
@@ -393,13 +376,21 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		downy = upy;
 	}
 	
-	public boolean isUpXOk(){
-	//	int tolerance = 50;
-	//	if((x != -1) || (upx > (downx - (tolerance)) && upx < (downx + tolerance))){
-			return true;
-	//	}
-	//	return false;
-	}
+	/**
+	 * Used to get relative coordinates of view.
+	 * @param activity
+	 * @param e
+	 * @return X and Y coordinates
+	 */
+	public static float[] getRelativeCoords(Activity activity, 
+		    MotionEvent e){
+		    // MapView
+		    View contentView= activity.getWindow().
+		        findViewById(Window.ID_ANDROID_CONTENT);
+		    return new float[] {
+		        e.getRawX() - contentView.getLeft(),
+		        e.getRawY() - contentView.getTop()};
+		}
 
 
 }
