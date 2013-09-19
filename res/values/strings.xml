@@ -7,6 +7,8 @@
         <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
 
+     <!-- IdeaVieweractivity -->
+      <string name="action_edit">Edit idea</string>
     
     <!-- MainActivity -->
     <string name="tv_group_name_label">Group name</string>
@@ -14,10 +16,12 @@
     <string name="tv_username_label">Username</string>
     <string name="et_username_hint">Username &#8230;</string>
     <string name="b_start">Start</string>
+        <string name="action_idea_viewer">Idea gallery</string>
     
     
     <!-- MainActivity -->
     <string name="action_bar_send">Send</string>
+
     <string name="action_bar_search">Search</string>
     <string name="action_bar_search_hint">Search text &#8230;</string>
     <string name="noUsernameError">Please enter your username</string>

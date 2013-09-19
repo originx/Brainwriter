@@ -6,7 +6,10 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
@@ -15,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import foi.appchallenge.brainwriting.asyncTasks.CheckServerStatusTask;
 import foi.appchallenge.brainwriting.interfaces.IResponseListener;
+import foi.appchallenge.brainwriting.services.CountDownTimerService;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -91,6 +95,30 @@ public class MainActivity extends ActionBarActivity {
 			}
 		});         
     }
+    
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.main, menu);
+		
+
+		return super.onCreateOptionsMenu(menu);
+	}
+    
+    @Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle presses on the action bar items
+		switch (item.getItemId()) {
+	
+		case R.id.action_idea_gallery:
+			
+			Intent i = new Intent(context, IdeaViewerActivity.class);
+			startActivity(i);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
