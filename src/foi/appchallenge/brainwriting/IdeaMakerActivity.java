@@ -2,13 +2,19 @@ package foi.appchallenge.brainwriting;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 
+import foi.appchallenge.brainwriting.asyncTasks.CheckRoundStatusTask;
+import foi.appchallenge.brainwriting.asyncTasks.SubmitIdeasTask;
+import foi.appchallenge.brainwriting.interfaces.IResponseListener;
+import foi.appchallenge.brainwriting.modules.PostParameters;
 import foi.appchallenge.helpers.HSVColorPickerDialog;
 import foi.appchallenge.helpers.HSVColorPickerDialog.OnColorSelectedListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -18,6 +24,7 @@ import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.OnNavigationListener;
@@ -45,7 +52,7 @@ import android.widget.ScrollView;
 import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
-public class IdeaMakerActivity extends ActionBarActivity  {
+public class IdeaMakerActivity extends ActionBarActivity {
 
 	private Context context;
 	private RadioGroup rgDrawOptions;
@@ -78,32 +85,34 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 	private int canvasBackgroundColorId = 0xffffffff;
 	private int brushStrokeWidth = 5;
 	private int textSize = 20;
-	
-	
-	private int brushColorId;
-	
-	
+
+
 	String inputTextString = "";
 
 	// coordinates to shift the view by
 	private float shiftX = 0f;
 	private float shiftY = 0f;
-	
+
 	// used for getting coordinates of tap in gestureDetector
 	// (in onDown listener)
 	private float x = -1; // -1 means coordinate is not OK to use
 	private float y = -1;
 
-	//previous idea on which we worked on
-	private int previousIdea=0;
-	private boolean imageLoaded=false;
+	// previous idea on which we worked on
+	private int previousIdea = 0;
+	private boolean imageLoaded = false;
+	//shared preferences
+	private SharedPreferences prefs;
+	private  SharedPreferences.Editor editor;
+	//current round number
+	private String currentRound;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_idea_maker);
 		context = this;
 
-		ActionBar actionBar = getSupportActionBar();
+		final ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setDisplayOptions(actionBar.getDisplayOptions()
 				^ ActionBar.DISPLAY_SHOW_TITLE);
@@ -120,54 +129,61 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 				Toast.makeText(context, ideas[position].toString(),
 						Toast.LENGTH_SHORT).show();
 
-				//TODO save  text
+				// TODO save text
 				manageIdeas(position);
 				return true;
 			}
-			
+
 			/**
 			 * Saves current idea and loads picked one if exists
-			 * @param position current position of idea
+			 * 
+			 * @param position
+			 *            current position of idea
 			 */
 			private void manageIdeas(int position) {
-				//if we switched idea
-				if(previousIdea!=position){
-				//get root folder
-				String root = Environment.getExternalStorageDirectory().toString();
-				File myDir = new File(root + "/Brainwriter/my_ideas");    
-				myDir.mkdirs();
-				//create new image file
-				String fname = "image"+ String.valueOf(previousIdea+1) +".png";
-				File file = new File (myDir, fname);
-				//if that file exists delete it to create new one
-				if (file.exists ()) file.delete (); 
-				try {
-						//save file
-				       FileOutputStream out = new FileOutputStream(file);
-				       bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
-				       out.flush();
-				       out.close();
-				} catch (Exception e) {
-				       e.printStackTrace();
+				// if we switched idea
+				if (previousIdea != position) {
+					// get root folder
+					String root = Environment.getExternalStorageDirectory()
+							.toString();
+					File myDir = new File(root + "/Brainwriter/my_ideas");
+					myDir.mkdirs();
+					// create new image file
+					String fname = "image" + String.valueOf(previousIdea + 1)
+							+ ".png";
+					File file = new File(myDir, fname);
+					// if that file exists delete it to create new one
+					if (file.exists())
+						file.delete();
+					try {
+						// save file
+						FileOutputStream out = new FileOutputStream(file);
+						bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
+						out.flush();
+						out.close();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					BitmapFactory.Options options = new BitmapFactory.Options();
+					options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+					// load file if exists
+					File imgFile = new File(myDir + "/image"
+							+ String.valueOf(position + 1) + ".png");
+					if (!imgFile.exists()) {
+						// if there isn't a file to load prepare empty canvas
+						prepareEmptyCanvas();
+					} else {
+						// if there is a file prepare canvas with loaded image
+						Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile
+								.getAbsolutePath());
+						bmp = mutableBitmap.copy(Bitmap.Config.ARGB_8888, true);
+						prepareLoadedCanvas(bmp);
+					}
 				}
-				
-				BitmapFactory.Options options = new BitmapFactory.Options();
-				options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-				//load file if exists
-				File imgFile = new  File(myDir+"/image"+ String.valueOf(position+1) +".png");
-				if(!imgFile.exists()){
-					//if there isn't a file to load prepare empty canvas
-					prepareEmptyCanvas();				
-				}else{
-					//if there is a file prepare canvas with loaded image
-					 Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-					 bmp = mutableBitmap.copy(Bitmap.Config.ARGB_8888, true);
-					prepareLoadedCanvas(bmp);
-				}
-				}
-				imageLoaded=true;//sets that we loaded image
-				//save previous position
-				previousIdea=position;
+				imageLoaded = true;// sets that we loaded image
+				// save previous position
+				previousIdea = position;
 			}
 		};
 
@@ -175,68 +191,37 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 				mOnNavigationListener);
 		shiftX = 0f;
 		shiftY = 0f;
-		
+
 		ivCanvas = (ImageView) this.findViewById(R.id.iv_canvas);
 
 		sv = (ScrollView) findViewById(R.id.sv);
 		hsv = (HorizontalScrollView) findViewById(R.id.hsv);
 
-
-		// for smaller bitmap use different config
-		Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-
-		// this creates a MUTABLE bitmap
-		bmp = Bitmap.createBitmap(CANVAS_PX_WIDTH, CANVAS_PX_HEIGHT, conf);
-
-		canvas = new Canvas(bmp);
-
-		// Fill with some background color
-		canvas.drawColor(canvasBackgroundColorId);
-		colorPicker = (ImageButton)findViewById(R.id.ib_color);
-		selectedColor = 0xFF4488CC;
-		colorPicker.setBackgroundColor(selectedColor);
-		
-		textPaint = new TextPaint();
-		textPaint.setColor(selectedColor);
-		textPaint.setTextSize(textSize);
-		
-		paint = new Paint();
-		// a lot of options
-		paint.setTextSize(20);
-		paint.setColor(selectedColor);
-		paint.setStrokeWidth(brushStrokeWidth);
-		paint.setDither(true);
-		paint.setStyle(Paint.Style.STROKE);
-		paint.setStrokeJoin(Paint.Join.ROUND);
-		paint.setStrokeCap(Paint.Cap.ROUND);
-		paint.setAntiAlias(true);
-
-		if(!imageLoaded || bmp==null){//if image isnt loaded create new bmp
+		if (!imageLoaded || bmp == null) {// if image isnt loaded create new bmp
 			prepareEmptyCanvas();
 		}
 
-
-
-		
 		colorPicker.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
-				HSVColorPickerDialog cpd = new HSVColorPickerDialog( IdeaMakerActivity.this, selectedColor, new OnColorSelectedListener() {
-					
-					public void colorSelected(Integer color) {
-						colorPicker.setBackgroundColor(color);
-						selectedColor = color;
-						paint.setColor(selectedColor);
-						textPaint.setColor(selectedColor);
-					}
-				});
-				//cpd.setTitle("Pick a color");
+				HSVColorPickerDialog cpd = new HSVColorPickerDialog(
+						IdeaMakerActivity.this, selectedColor,
+						new OnColorSelectedListener() {
+
+							public void colorSelected(Integer color) {
+								colorPicker.setBackgroundColor(color);
+								selectedColor = color;
+								paint.setColor(selectedColor);
+								textPaint.setColor(selectedColor);
+							}
+						});
+				// cpd.setTitle("Pick a color");
 				cpd.show();
-				
+
 			}
 		});
-		
+
 		rgDrawOptions = (RadioGroup) findViewById(R.id.rg_draw_options);
 		rgDrawOptions
 				.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -257,9 +242,9 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 							break;
 						case R.id.rb_eraser:
 							paint.setColor(Color.WHITE);
-							paint.setStrokeWidth(brushStrokeWidth*5);
+							paint.setStrokeWidth(brushStrokeWidth * 5);
 							break;
-						
+
 						default:
 							break;
 						}
@@ -270,16 +255,17 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 			@Override
 			public boolean onDown(MotionEvent e) {
 				// used for drawing on canvas
-				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush || rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_eraser) {
+				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush
+						|| rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_eraser) {
 					x = e.getX();
 					y = e.getY();
 					canvas.drawPoint(x, y, paint);
 					ivCanvas.invalidate();
-					//Log.d("gestureDetector:onDown", "x: " + x + " y:" + y);
-				}  else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_text){
+					// Log.d("gestureDetector:onDown", "x: " + x + " y:" + y);
+				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_text) {
 					x = e.getX();
 					y = e.getY();
-					showDialogInputText(x,y);
+					showDialogInputText(x, y);
 
 				} else { // if not in brush MOD
 					x = -1;
@@ -296,21 +282,22 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_hand) {
-					
+
 					return false;
-				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush || rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_eraser) {
+				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush
+						|| rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_eraser) {
 					int action = event.getAction();
 					switch (action) {
 					case MotionEvent.ACTION_DOWN:
 						break;
 					case MotionEvent.ACTION_MOVE:
-						float[] coords= getRelativeCoords((Activity) context, event);
-				        
-						upx = coords[0];//event.getX();
-						upy = coords[1]; //event.getY();
+						float[] coords = getRelativeCoords((Activity) context,
+								event);
 
-						
-							drawOnCanvas();
+						upx = coords[0];// event.getX();
+						upy = coords[1]; // event.getY();
+
+						drawOnCanvas();
 						break;
 					case MotionEvent.ACTION_UP:
 						break;
@@ -319,9 +306,9 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 					default:
 						break;
 					}
-				//return false;
+					// return false;
 				}
-				
+
 				return true; // no scroll case
 			}
 		});
@@ -331,6 +318,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		hsv.setOnTouchListener(new View.OnTouchListener() {
 			private float mx, my, curX, curY;
 			private boolean started = false;
+
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_hand) {
@@ -356,21 +344,23 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 						break;
 					}
 					return true;
-				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush || rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_eraser) {
+				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush
+						|| rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_eraser) {
 					int action = event.getAction();
 					switch (action) {
 					case MotionEvent.ACTION_DOWN:
-						
+
 						break;
 					case MotionEvent.ACTION_MOVE:
-						
-						float[] coords= getRelativeCoords((Activity) context, event);
-				        
-						upx = coords[0];
-						upy = coords[1]; 
 
-							drawOnCanvas();
-						
+						float[] coords = getRelativeCoords((Activity) context,
+								event);
+
+						upx = coords[0];
+						upy = coords[1];
+
+						drawOnCanvas();
+
 						break;
 					case MotionEvent.ACTION_UP:
 						break;
@@ -394,24 +384,117 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 			}
 		});
 
+		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		currentRound=prefs.getString("round", "1");
+		CheckRoundStatusTask chkRound = new CheckRoundStatusTask(this, currentRound);
+		
+		chkRound.setListener(new IResponseListener() {
+			@Override
+			public void responseSuccess(String data) {
+
+				 editor = prefs.edit();
+				int rnd =(Integer.parseInt(currentRound)+1);
+				 currentRound=String.valueOf(rnd);
+				 editor.putString("round", currentRound);
+				 String username=prefs.getString("username", "");
+				 String groupName=prefs.getString("groupName", "");
+				 
+				 //TODO add text from db here
+				 String [] text= {"test1","test2","test3"};
+				 
+				 uploadFilesResetRound(actionBar, username, groupName, text);
+				 
+				
+			}
+
+			private void uploadFilesResetRound(final ActionBar actionBar,
+					String username, String groupName, String[] text) {
+				ArrayList<Bitmap> bitmapArray = new ArrayList<Bitmap>();
+				 BitmapFactory.Options options = new BitmapFactory.Options();
+					options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+				 for (int i = 0; i < 3; i++) {
+						// get root folder
+						String root = Environment.getExternalStorageDirectory()
+								.toString();
+						File myDir = new File(root + "/Brainwriter/my_ideas");
+						myDir.mkdirs();
+						// load file if exists
+						File imgFile = new File(myDir + "/image"
+								+ String.valueOf(i + 1) + ".png");
+						if (imgFile.exists()) {
+							Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile
+									.getAbsolutePath());
+							bitmapArray.add(mutableBitmap);
+						} 
+				}
+				 
+				 SubmitIdeasTask submitIdeas= new SubmitIdeasTask();
+					submitIdeas.setListener(new IResponseListener() {
+						
+						@Override
+						public void responseSuccess(String data) {
+							for (int i = 0; i < 3; i++) {
+								// get root folder
+								String root = Environment.getExternalStorageDirectory()
+										.toString();
+								File myDir = new File(root + "/Brainwriter/my_ideas");
+								myDir.mkdirs();
+								// load file if exists
+								File imgFile = new File(myDir + "/image"
+										+ String.valueOf(i + 1) + ".png");
+								if (imgFile.exists()) {
+									imgFile.delete();
+								} 
+						}
+							
+							actionBar.setSelectedNavigationItem(0);
+							previousIdea=0;
+						}
+						
+						@Override
+						public void responseFail() {
+							
+						}
+					});
+					PostParameters p = new PostParameters();
+					p.b=bitmapArray.toArray();
+					p.groupName=groupName;
+					p.userName=username;
+					p.text=text;
+
+					submitIdeas.execute(p);
+			}
+			
+			@Override
+			public void responseFail() {
+				// :v
+				
+			}
+		});
+		
 	}
 
 	private void prepareEmptyCanvas() {
 		// for smaller bitmap use different config
-				Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+		Bitmap.Config conf = Bitmap.Config.ARGB_8888;
 
-				// this creates a MUTABLE bitmap
-				bmp = Bitmap.createBitmap(CANVAS_PX_WIDTH, CANVAS_PX_HEIGHT, conf);
+		// this creates a MUTABLE bitmap
+		bmp = Bitmap.createBitmap(CANVAS_PX_WIDTH, CANVAS_PX_HEIGHT, conf);
 		canvas = new Canvas(bmp);
 
 		// Fill with some background color
 		canvas.drawColor(canvasBackgroundColorId);
-		colorPicker = (ImageButton)findViewById(R.id.ib_color);
-		colorPicker.setBackgroundColor(0xFF4488CC);
-		brushColorId = 0xFF4488CC;
+		colorPicker = (ImageButton) findViewById(R.id.ib_color);
+		selectedColor = 0xFF4488CC;
+		colorPicker.setBackgroundColor(selectedColor);
+
+		textPaint = new TextPaint();
+		textPaint.setColor(selectedColor);
+		textPaint.setTextSize(textSize);
 		paint = new Paint();
 		// a lot of options
-		paint.setColor(brushColorId);
+		paint.setTextSize(20);
+		paint.setColor(selectedColor);
 		paint.setStrokeWidth(brushStrokeWidth);
 		paint.setDither(true);
 		paint.setStyle(Paint.Style.STROKE);
@@ -425,18 +508,26 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		// attach the canvas to the ImageView
 		ivCanvas.setImageDrawable(new BitmapDrawable(getResources(), bmp));
 	}
+
 	private void prepareLoadedCanvas(Bitmap bmp) {
-		
+
 		canvas = new Canvas(bmp);
 
-		// Fill with some background color
-		//canvas.drawColor(canvasBackgroundColorId);
-		colorPicker = (ImageButton)findViewById(R.id.ib_color);
+		colorPicker = (ImageButton) findViewById(R.id.ib_color);
+		selectedColor = 0xFF4488CC;
+		colorPicker.setBackgroundColor(selectedColor);
+
+		textPaint = new TextPaint();
+		textPaint.setColor(selectedColor);
+		textPaint.setTextSize(textSize);
+		// canvas.drawColor(canvasBackgroundColorId);
+		colorPicker = (ImageButton) findViewById(R.id.ib_color);
 		colorPicker.setBackgroundColor(0xFF4488CC);
-		brushColorId = 0xFF4488CC;
+
 		paint = new Paint();
 		// a lot of options
-		paint.setColor(brushColorId);
+		paint.setTextSize(20);
+		paint.setColor(selectedColor);
 		paint.setStrokeWidth(brushStrokeWidth);
 		paint.setDither(true);
 		paint.setStyle(Paint.Style.STROKE);
@@ -450,6 +541,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		// attach the canvas to the ImageView
 		ivCanvas.setImageDrawable(new BitmapDrawable(getResources(), bmp));
 	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.idea_maker, menu);
@@ -479,33 +571,37 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		 */
 		case R.id.action_send:
 			Toast.makeText(context, "SEND", Toast.LENGTH_SHORT).show();
-			//TODO upload images and wait for another round
+			// TODO upload images and wait for another round
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
 
-	public void showDialogInputText(final float xPath, final float yPath){
+	public void showDialogInputText(final float xPath, final float yPath) {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		LayoutInflater inflater = getLayoutInflater();
 		View dialogView = inflater.inflate(R.layout.dialog_text_input, null);
 		alert.setView(dialogView);
-		final EditText textInput = (EditText)dialogView.findViewById(R.id.et_text_input);
+		final EditText textInput = (EditText) dialogView
+				.findViewById(R.id.et_text_input);
 
-		alert.setTitle(context.getResources().getString(R.string.dialog_input_text_title));
+		alert.setTitle(context.getResources().getString(
+				R.string.dialog_input_text_title));
 		alert.setPositiveButton(context.getResources().getString(R.string.ok),
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						inputTextString = textInput.getText().toString();
-						
-						StaticLayout mTextLayout = new StaticLayout(inputTextString, textPaint, canvas.getWidth(), Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+
+						StaticLayout mTextLayout = new StaticLayout(
+								inputTextString, textPaint, canvas.getWidth(),
+								Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
 						canvas.save();
 						canvas.translate(xPath, yPath);
 						mTextLayout.draw(canvas);
 						canvas.restore();
-		
-						//canvas.drawText(inputTextString,xPath, yPath, paint);
+
+						// canvas.drawText(inputTextString,xPath, yPath, paint);
 						ivCanvas.invalidate();
 					}
 				});
@@ -514,24 +610,24 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						Toast.makeText(context, "CANCEL", Toast.LENGTH_SHORT)
-						.show();
+								.show();
 					}
 				});
 		alert.show();
 	}
-	
+
 	/**
 	 * Draw on canvas with brush.
 	 */
 	void drawOnCanvas() {
-		Log.d("drawOnCanvas:ACTION_MOVE", "downx: " + downx + 
-				" upx: " + upx + " downy" + downy + " upy: " + upy + " shiftX" + shiftX
+		Log.d("drawOnCanvas:ACTION_MOVE", "downx: " + downx + " upx: " + upx
+				+ " downy" + downy + " upy: " + upy + " shiftX" + shiftX
 				+ " shiftY: " + shiftY);
 
 		if (x != -1 && y != -1) {
 			shiftX = x - upx;
 			shiftY = y - upy;
-			
+
 			x = -1;
 			y = -1;
 		} else {
@@ -543,22 +639,20 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		downx = upx;
 		downy = upy;
 	}
-	
+
 	/**
 	 * Used to get relative coordinates of view.
+	 * 
 	 * @param activity
 	 * @param e
 	 * @return X and Y coordinates
 	 */
-	public static float[] getRelativeCoords(Activity activity, 
-		    MotionEvent e){
-		    // MapView
-		    View contentView= activity.getWindow().
-		        findViewById(Window.ID_ANDROID_CONTENT);
-		    return new float[] {
-		        e.getRawX() - contentView.getLeft(),
-		        e.getRawY() - contentView.getTop()};
-		}
-
+	public static float[] getRelativeCoords(Activity activity, MotionEvent e) {
+		// MapView
+		View contentView = activity.getWindow().findViewById(
+				Window.ID_ANDROID_CONTENT);
+		return new float[] { e.getRawX() - contentView.getLeft(),
+				e.getRawY() - contentView.getTop() };
+	}
 
 }

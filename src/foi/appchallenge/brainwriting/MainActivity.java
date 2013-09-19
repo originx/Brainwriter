@@ -74,6 +74,8 @@ public class MainActivity extends ActionBarActivity {
 						
 						@Override
 						public void responseSuccess(String data) {//if successfull response login
+							editor.putString("round", "1");
+							editor.commit();
 							Intent i = new Intent(context, IdeaMakerActivity.class);
 							startActivity(i);
 						}
