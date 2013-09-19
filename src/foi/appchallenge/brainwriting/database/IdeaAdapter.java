@@ -4,7 +4,9 @@ package foi.appchallenge.brainwriting.database;
 import java.util.ArrayList;
 import java.util.List;
 
+import foi.appchallenge.brainwriting.types.Idea;
 import foi.appchallenge.brainwriting.types.Note;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -42,7 +44,7 @@ public class IdeaAdapter {
 		List<Note> result = new ArrayList<Note>();
 
 		String[] columns = new String[] { KEY_ID, "id",
-				"note_text", "note_id",
+				"note_text", "idea_id",
 				"x", "y" };
 
 		Cursor cursor = sqLiteDatabase.query(TABLE, columns, "note_text like '%"
@@ -71,4 +73,63 @@ public class IdeaAdapter {
 		
 		return result;
 	}
+	
+	public boolean insertNote(Note note){
+		ContentValues cv = new ContentValues();
+		// note id is auto increment
+		cv.put("note_text", note.getNoteText());
+		cv.put("x", note.getX());
+		cv.put("y", note.getY());
+		cv.put("idea_id", note.getIdeaId());
+		
+		if (sqLiteDatabase.insert("note", null, cv) != -1) {
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean insertNotes(ArrayList<Note> notes){
+		boolean allInsertedOk = true;
+		for(int i = 0; i < notes.size(); i++){
+			if(!insertNote(notes.get(i))){
+				allInsertedOk = false;
+			}
+		}
+		return allInsertedOk;
+	}
+	
+	public boolean insertIdea(Idea idea){
+		boolean ideaInsertedOk = false;
+		boolean notesInsertedOk = false;
+		
+		ContentValues cv = new ContentValues();
+		// note id is auto increment
+		cv.put("creator", idea.getCreator());
+		cv.put("img_height", idea.getImageHeight());
+		cv.put("img_width", idea.getImageWidth());
+		cv.put("img_name", idea.getImageName());
+		
+		if (sqLiteDatabase.insert("idea", null, cv) != -1) {
+			ideaInsertedOk = true;
+		}
+		
+		if(insertNotes(idea.getNotes())){
+			notesInsertedOk = true;
+		}
+		// TODO insert also notes here
+		
+		
+		return (ideaInsertedOk && notesInsertedOk);
+		
+	}
+	 public int getLastId(){
+		  int lastId = -1;
+		  Cursor cursor = sqLiteDatabase.rawQuery("SELECT id FROM idea WHERE id=(SELECT MAX(id) FROM idea);", null);
+		  if (cursor.getCount() == 1){
+		   cursor.moveToFirst();
+		   lastId = cursor.getInt(cursor.getColumnIndex("id"));
+		  }
+		  cursor.close();
+		  return lastId;
+	 }
 }
