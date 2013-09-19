@@ -1,7 +1,7 @@
 package foi.appchallenge.brainwriting.types;
 
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class Idea {
 	private int id;
@@ -9,10 +9,10 @@ public class Idea {
 	private int imageWidth;
 	private int imageHeight;
 	private String imageName;
-	private List<Note> notes;
+	private ArrayList<Note> notes;
 	
 	public Idea(int id, String creator, int imageWidth, int imageHeight,
-			String imageName, List<Note> notes) {
+			String imageName, ArrayList<Note> notes) {
 		this.id = id;
 		this.creator = creator;
 		this.imageWidth = imageWidth;
@@ -61,11 +61,11 @@ public class Idea {
 		this.imageName = imageName;
 	}
 
-	public List<Note> getNotes() {
+	public ArrayList<Note> getNotes() {
 		return notes;
 	}
 
-	public void setNotes(List<Note> notes) {
+	public void setNotes(ArrayList<Note> notes) {
 		this.notes = notes;
 	}
 	

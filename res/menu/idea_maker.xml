@@ -2,11 +2,9 @@
     xmlns:brainwriting="http://schemas.android.com/apk/res-auto" >
 
     <item
-        android:id="@+id/action_search"
-        android:icon="@drawable/ib_search"
-        android:title="@string/action_bar_search"
-        brainwriting:actionViewClass="android.support.v7.widget.SearchView"
-        brainwriting:showAsAction="ifRoom|collapseActionView"/>
+        android:id="@+id/action_countdown_timer"
+        android:actionViewClass="android.widget.TextView"
+        brainwriting:showAsAction="always|withText"/>
     <item
         android:id="@+id/action_send"
         android:icon="@drawable/ib_send_idea"

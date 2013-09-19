@@ -4,17 +4,27 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 
+
 import foi.appchallenge.brainwriting.asyncTasks.CheckRoundStatusTask;
 import foi.appchallenge.brainwriting.asyncTasks.SubmitIdeasTask;
 import foi.appchallenge.brainwriting.interfaces.IResponseListener;
 import foi.appchallenge.brainwriting.modules.PostParameters;
+
+import foi.appchallenge.brainwriting.services.CountDownTimerService;
+
 import foi.appchallenge.helpers.HSVColorPickerDialog;
 import foi.appchallenge.helpers.HSVColorPickerDialog.OnColorSelectedListener;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.app.ActivityManager.RunningServiceInfo;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.Intent;
+import android.content.IntentFilter;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -24,12 +34,13 @@ import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
+
 import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
+
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.OnNavigationListener;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.widget.SearchView;
 import android.text.Layout.Alignment;
 import android.text.StaticLayout;
 import android.text.TextPaint;
@@ -98,6 +109,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private float x = -1; // -1 means coordinate is not OK to use
 	private float y = -1;
 
+
 	// previous idea on which we worked on
 	private int previousIdea = 0;
 	private boolean imageLoaded = false;
@@ -106,13 +118,27 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private  SharedPreferences.Editor editor;
 	//current round number
 	private String currentRound;
+
+	MenuItem countdownTimer;
+	
+	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_idea_maker);
 		context = this;
-
 		final ActionBar actionBar = getSupportActionBar();
+
+		if(!isMyServiceRunning()){
+			startService(new Intent(context, CountDownTimerService.class));
+			registerReceiver(uiUpdated, new IntentFilter("COUNTDOWN_UPDATED"));
+			Log.d("SERVICE", "STARTED!");
+		}else
+		{
+			Log.d("SERVICE", "RUNING!");
+		}
+		
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setDisplayOptions(actionBar.getDisplayOptions()
 				^ ActionBar.DISPLAY_SHOW_TITLE);
@@ -545,7 +571,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.idea_maker, menu);
-		MenuItem search = menu.findItem(R.id.action_search);
+		/*MenuItem search = menu.findItem(R.id.action_search);
 		SearchView searchView = (SearchView) MenuItemCompat
 				.getActionView(search);
 		searchView.setQueryHint(context.getResources().getString(
@@ -556,10 +582,28 @@ public class IdeaMakerActivity extends ActionBarActivity {
 			public void onClick(View v) {
 
 			}
-		});
+		});*/
 
 		return super.onCreateOptionsMenu(menu);
 	}
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		//getMenuInflater().inflate(R.menu.idea_maker, menu);
+		countdownTimer = menu.findItem(R.id.action_countdown_timer);
+		
+		return super.onPrepareOptionsMenu(menu);
+	}
+	
+	private BroadcastReceiver uiUpdated= new BroadcastReceiver() {
+
+	    @Override
+	    public void onReceive(Context context, Intent intent) {
+
+	    	countdownTimer.setTitle(intent.getExtras().getString("countdown"));
+
+	    }
+	};
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -570,6 +614,10 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		 * Toast.LENGTH_SHORT).show(); return true;
 		 */
 		case R.id.action_send:
+			
+			stopService(new Intent(context,CountDownTimerService.class));
+			Log.d("SERVICE", "STOPED!");
+			unregisterReceiver(uiUpdated);
 			Toast.makeText(context, "SEND", Toast.LENGTH_SHORT).show();
 			// TODO upload images and wait for another round
 			return true;
@@ -647,12 +695,25 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	 * @param e
 	 * @return X and Y coordinates
 	 */
-	public static float[] getRelativeCoords(Activity activity, MotionEvent e) {
-		// MapView
-		View contentView = activity.getWindow().findViewById(
-				Window.ID_ANDROID_CONTENT);
-		return new float[] { e.getRawX() - contentView.getLeft(),
-				e.getRawY() - contentView.getTop() };
-	}
+	public static float[] getRelativeCoords(Activity activity, 
+		    MotionEvent e){
+		    // MapView
+		    View contentView= activity.getWindow().
+		        findViewById(Window.ID_ANDROID_CONTENT);
+		    return new float[] {
+		        e.getRawX() - contentView.getLeft(),
+		        e.getRawY() - contentView.getTop()};
+		}
+
+    public boolean isMyServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (CountDownTimerService.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+	
 
 }

@@ -41,6 +41,7 @@
        
             android:theme="@style/Theme.AppCompat.Light" >
         </activity>
+        <service android:name="foi.appchallenge.brainwriting.services.CountDownTimerService" />
     </application>
 
 </manifest>
