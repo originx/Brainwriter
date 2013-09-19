@@ -13,6 +13,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.OnNavigationListener;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,7 +45,6 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private int CANVAS_PX_HEIGHT = 1024;
 
 	private Bitmap bmp;
-	// private Bitmap alteredBitmap; // example also had this for something
 
 	private Canvas canvas;
 	private Paint paint;
@@ -59,11 +59,14 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private int brushColorId = Color.GREEN;
 	private int brushStrokeWidth = 5;
 
-	// coordinates to shift the view by, work only for horizontal (hsv shift) for now :(
-	// need better way to do it
+	// coordinates to shift the view by
 	private float shiftX = 0f;
 	private float shiftY = 0f;
 
+	// used for getting coordinates of tap in gestureDetector
+	// (in onDown listener)
+	private float x = -1; // -1 means coordinate is not OK to use
+	private float y = -1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,37 +102,29 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		sv = (ScrollView) findViewById(R.id.sv);
 		hsv = (HorizontalScrollView) findViewById(R.id.hsv);
 
-		Bitmap.Config conf = Bitmap.Config.ARGB_8888; // for smaller bitmap use
-														// different config
-		bmp = Bitmap.createBitmap(CANVAS_PX_WIDTH, CANVAS_PX_HEIGHT, conf); // this
-																			// creates
-																			// a
-																			// MUTABLE
-																			// bitmap
+		// for smaller bitmap use different config
+		Bitmap.Config conf = Bitmap.Config.ARGB_8888;
 
-		// TODO check why altered??
-		// alteredBitmap = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(),
-		// bmp.getConfig());
+		// this creates a MUTABLE bitmap
+		bmp = Bitmap.createBitmap(CANVAS_PX_WIDTH, CANVAS_PX_HEIGHT, conf);
 
 		canvas = new Canvas(bmp);
 
-		// Fill with white
+		// Fill with some background color
 		canvas.drawColor(canvasBackgroundColorId);
 
 		paint = new Paint();
+		// a lot of options
 		paint.setColor(brushColorId);
 		paint.setStrokeWidth(brushStrokeWidth);
-		// paint.setDither(true);
-		// paint.setStyle(Paint.Style.STROKE);
-		// paint.setStrokeJoin(Paint.Join.ROUND);
+		paint.setDither(true);
+		paint.setStyle(Paint.Style.STROKE);
+		paint.setStrokeJoin(Paint.Join.ROUND);
 		paint.setStrokeCap(Paint.Cap.ROUND);
 		paint.setAntiAlias(true);
 
 		matrix = new Matrix();
 		canvas.drawBitmap(bmp, matrix, paint);
-
-		// canvas.drawBitmap(bmp, new Rect(0,0,bmp.getWidht, bmp.getheight),
-		// thumbnailRectF, thumbCanvasPaint);
 
 		// attach the canvas to the ImageView
 		ivCanvas.setImageDrawable(new BitmapDrawable(getResources(), bmp));
@@ -172,30 +167,50 @@ public class IdeaMakerActivity extends ActionBarActivity {
 			public boolean onDown(MotionEvent e) {
 				// used for drawing on canvas
 				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush) {
-					// Rect clipBounds_canvas = canvas.getClipBounds();
-					downx = e.getX();// / 1 + clipBounds_canvas.left;
-					downy = e.getY();// / 1 + clipBounds_canvas.top;
-
+					x = e.getX();
+					y = e.getY();
+					canvas.drawPoint(x, y, paint);
+					ivCanvas.invalidate();
+					Log.d("gestureDetector:onDown", "x: " + x + " y:" + y);
+				} else { // if not in brush MOD
+					x = -1;
+					y = -1;
 				}
-
 				return super.onDown(e);
 			}
 
 			@Override
 			public boolean onDoubleTap(MotionEvent e) {
 				// handleZoomRequest();
-				Toast.makeText(
-						getApplicationContext(),
-						"double tap... canvas_width" + canvas.getWidth()
-								+ "bmp width:" + bmp.getWidth(),
+				Toast.makeText(getApplicationContext(), "double tap.",
 						Toast.LENGTH_LONG).show();
 				return true;
 			}
 
 			@Override
 			public boolean onSingleTapConfirmed(MotionEvent e) {
-				// showRoomDetails();
+				// TODO draw point in here no onDown
 				return super.onSingleTapConfirmed(e);
+			}
+
+			@Override
+			public boolean onSingleTapUp(MotionEvent e) {
+				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush) {
+					upx = e.getX();
+					upy = e.getY();
+					Log.d("sv:ACTION_UP", "downx: " + downx + "downy" + downy
+							+ "upx: " + upx + "upy: " + upy);
+					canvas.drawLine(downx, downy, upx, upy, paint);
+					ivCanvas.invalidate();
+
+					Toast.makeText(getApplicationContext(), "tap up.",
+							Toast.LENGTH_LONG).show();
+				} else { // if not in brush MOD
+					x = -1;
+					y = -1;
+				}
+
+				return super.onSingleTapUp(e);
 			}
 
 		};
@@ -207,35 +222,33 @@ public class IdeaMakerActivity extends ActionBarActivity {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_hand) {
+					// TODO handle offset also here?
+
 					return false;
 				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush) {
 					int action = event.getAction();
 					switch (action) {
 					case MotionEvent.ACTION_DOWN:
-						// downx = event.getX();
-						// downy = event.getY();
-						// won't come here as gesture detector action down is
-						// stronger..
+						downx = event.getX();
+						downy = event.getY();
+						x = -1;
+						y = -1;
 						break;
 					case MotionEvent.ACTION_MOVE:
-						// Rect clipBounds_canvas = canvas.getClipBounds();
-						upx = event.getX();// / 1 + clipBounds_canvas.left;
-						upy = event.getY();// / 1 + clipBounds_canvas.top;
-						
-						
-						// canvas.drawLine(downx, downy, upx, upy, paint);
-						canvas.drawLine(downx + shiftX, downy + shiftY, upx
-								+ shiftX, upy + shiftY, paint);
+						upx = event.getX();
+						upy = event.getY();
 
-						ivCanvas.invalidate();
-						downx = upx;
-						downy = upy;
+						drawOnCanvas();
+
 						break;
 					case MotionEvent.ACTION_UP:
-						// upx = event.getX();
-						// upy = event.getY();
-						// canvas.drawLine(downx, downy, upx, upy, paint);
-						// ivCanvas.invalidate();
+						/*
+						 * upx = event.getX(); upy = event.getY();
+						 * Log.d("sv:ACTION_UP", "downx: " + downx + "downy" +
+						 * downy + "upx: " + upx + "upy: " + upy);
+						 * canvas.drawLine(downx, downy, upx, upy, paint);
+						 * ivCanvas.invalidate();
+						 */
 						break;
 					case MotionEvent.ACTION_CANCEL:
 						break;
@@ -260,21 +273,16 @@ public class IdeaMakerActivity extends ActionBarActivity {
 					curY = event.getY();
 					int dx = (int) (mx - curX);
 					int dy = (int) (my - curY);
-
 					switch (event.getAction()) {
 					case MotionEvent.ACTION_MOVE:
 						if (started) {
 							sv.scrollBy(0, dy);
 							hsv.scrollBy(dx, 0);
 
-							
-							// for drawing with brush after scroll, don't really work
-							// works only partially after horizontal scroll
 							shiftX += dx;// moves the shifting variables
 							shiftY += dy;// in the direction of the finger
-											// movement
-							
-							
+
+							checkAndSetScrollShift();
 
 						} else {
 							started = true;
@@ -286,6 +294,11 @@ public class IdeaMakerActivity extends ActionBarActivity {
 						sv.scrollBy(0, dy);
 						hsv.scrollBy(dx, 0);
 
+						shiftX += dx;// moves the shifting variables
+						shiftY += dy;// in the direction of the finger
+
+						checkAndSetScrollShift();
+
 						started = false;
 						break;
 					}
@@ -294,22 +307,18 @@ public class IdeaMakerActivity extends ActionBarActivity {
 					int action = event.getAction();
 					switch (action) {
 					case MotionEvent.ACTION_DOWN:
-						// downx = event.getX();
-						// downy = event.getY();
+						Log.d("hsv:ACTION_DOWN_brush", "!!!!!!!!!!!!!");
+						downx = event.getX();
+						downy = event.getY();
 						// won't come here as gesture detector action down is
 						// stronger..
 						break;
 					case MotionEvent.ACTION_MOVE:
-						 upx = event.getX();
-						 upy = event.getY();
+						upx = event.getX();
+						upy = event.getY();
 
-						// canvas.drawLine(downx, downy, upx, upy, paint);
-						canvas.drawLine(downx + shiftX, downy + shiftY, upx
-								+ shiftX, upy + shiftY, paint);
+						drawOnCanvas();
 
-						ivCanvas.invalidate();
-						downx = upx;
-						downy = upy;
 						break;
 					case MotionEvent.ACTION_UP:
 						// upx = event.getX();
@@ -324,7 +333,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 					}
 				}
 
-				return true; // if mod not hand
+				return true; // if MOD is not hand
 			}
 		});
 
@@ -371,6 +380,51 @@ public class IdeaMakerActivity extends ActionBarActivity {
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
+		}
+	}
+
+	/**
+	 * Draw on canvas with brush.
+	 */
+	void drawOnCanvas() {
+		Log.d("drawOnCanvas:ACTION_MOVE", "downx: " + downx + "downy" + downy
+				+ "upx: " + upx + "upy: " + upy + " shiftX" + shiftX
+				+ " shiftY: " + shiftY);
+
+		// canvas.drawLine(downx, downy, upx, upy, paint);
+		if (x != -1 && y != -1) {
+			canvas.drawLine(x, y, upx + shiftX, upy + shiftY, paint);
+			x = -1;
+			y = -1;
+		} else {
+			canvas.drawLine(downx + shiftX, downy + shiftY, upx + shiftX, upy
+					+ shiftY, paint);
+		}
+
+		ivCanvas.invalidate();
+		downx = upx;
+		downy = upy;
+	}
+
+	/**
+	 * Check if scroll shift didn't go mad. Still need some optimization.
+	 * Also test if this is OK.
+	 */
+	void checkAndSetScrollShift() {
+
+		if (shiftX < 0) {
+			shiftX = 0;
+		}
+		if (shiftY < 0) {
+			shiftY = 0;
+		}
+
+		// TODO check if this is OK
+		if (shiftX > ivCanvas.getWidth()) {
+			shiftX = ivCanvas.getWidth();
+		}
+		if (shiftY > ivCanvas.getHeight()) {
+			shiftY = ivCanvas.getHeight();
 		}
 	}
 
