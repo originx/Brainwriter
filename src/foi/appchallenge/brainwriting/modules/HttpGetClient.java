@@ -19,7 +19,7 @@ import foi.appchallenge.brainwriting.interfaces.IResponseListener;
 
 /**
  * Http get client as async task which receive parameters of GetParametrs class
- * @author Mario Oršoliæ
+ * @author Mario OrÅ¡oliÄ‡
  * @return Server response in string type
  */
 public class HttpGetClient extends AsyncTask<GetParameters, Void,String> {

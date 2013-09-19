@@ -62,12 +62,12 @@
             android:button="@null" 
             android:checked="true" />
 
-        <RadioButton
-            android:id="@+id/rb_color"
+        <ImageButton
+            android:id="@+id/ib_color"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/radio_button_brush"
+            android:layout_margin="5dp"
             android:button="@null" />
 
         <RadioButton
@@ -75,7 +75,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/radio_button_brush"
+            android:background="@drawable/radio_button_eraser"
             android:button="@null" />
 
         <RadioButton
@@ -83,7 +83,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/radio_button_brush"
+            android:background="@drawable/radio_button_text"
             android:button="@null" />
 
         <RadioButton
@@ -91,7 +91,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/radio_button_brush"
+            android:background="@drawable/radio_button_hand"
             android:button="@null" />
     </RadioGroup>
 

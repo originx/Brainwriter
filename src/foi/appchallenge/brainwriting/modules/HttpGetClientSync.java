@@ -13,7 +13,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 /**
- * @author Mario Oršoliæ
+ * @author Mario OrÅ¡oliÄ‡
  *  * Http get client as sync task which receive parameters of GetParametrs class
  *
  */

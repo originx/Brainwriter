@@ -1,5 +1,7 @@
 package foi.appchallenge.brainwriting;
 
+import foi.appchallenge.helpers.HSVColorPickerDialog;
+import foi.appchallenge.helpers.HSVColorPickerDialog.OnColorSelectedListener;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -20,17 +22,20 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
-public class IdeaMakerActivity extends ActionBarActivity {
+public class IdeaMakerActivity extends ActionBarActivity  {
 
 	private Context context;
 	private RadioGroup rgDrawOptions;
+	private ImageButton colorPicker;
 
 	private ScrollView sv;
 	private HorizontalScrollView hsv;
@@ -56,7 +61,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 	// TODO create Settings for this so it can be changed
 	private int canvasBackgroundColorId = 0xffffffff;
-	private int brushColorId = Color.GREEN;
+	private int brushColorId;
 	private int brushStrokeWidth = 5;
 
 	// coordinates to shift the view by, work only for horizontal (hsv shift) for now :(
@@ -115,7 +120,9 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 		// Fill with white
 		canvas.drawColor(canvasBackgroundColorId);
-
+		colorPicker = (ImageButton)findViewById(R.id.ib_color);
+		colorPicker.setBackgroundColor(0xFF4488CC);
+		brushColorId = 0xFF4488CC;
 		paint = new Paint();
 		paint.setColor(brushColorId);
 		paint.setStrokeWidth(brushStrokeWidth);
@@ -134,6 +141,25 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		// attach the canvas to the ImageView
 		ivCanvas.setImageDrawable(new BitmapDrawable(getResources(), bmp));
 
+		
+		colorPicker.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				HSVColorPickerDialog cpd = new HSVColorPickerDialog( IdeaMakerActivity.this, brushColorId, new OnColorSelectedListener() {
+					
+					public void colorSelected(Integer color) {
+						colorPicker.setBackgroundColor(color);
+						brushColorId = color;
+						paint.setColor(brushColorId);
+					}
+				});
+				//cpd.setTitle("Pick a color");
+				cpd.show();
+				
+			}
+		});
+		
 		rgDrawOptions = (RadioGroup) findViewById(R.id.rg_draw_options);
 		rgDrawOptions
 				.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -157,10 +183,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 							Toast.makeText(context, "ERASER",
 									Toast.LENGTH_SHORT).show();
 							break;
-						case R.id.rb_color:
-							Toast.makeText(context, "COLOR", Toast.LENGTH_SHORT)
-									.show();
-							break;
+						
 						default:
 							break;
 						}
@@ -373,5 +396,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 			return super.onOptionsItemSelected(item);
 		}
 	}
+
+
 
 }

@@ -6,15 +6,19 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+
+import foi.appchallenge.brainwriting.modules.JSONFunctions;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -31,7 +35,7 @@ public class MainActivity extends ActionBarActivity {
         context = this;
         groupName = (EditText)findViewById(R.id.et_group_name);
         username = (EditText)findViewById(R.id.et_username);
-        Button start = (Button)findViewById(R.id.b_start);
+        ImageButton start = (ImageButton)findViewById(R.id.b_start);
         //create preferences manager for saving username
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         editor = prefs.edit();
@@ -63,7 +67,7 @@ public class MainActivity extends ActionBarActivity {
 					
 						@Override
 					    public void onSuccess(String response) {
-							//TODO parsat response string i vidjet dal je round == 0
+							String roundNumber = JSONFunctions.getRoundNumber(response);
 							if(true){
 								AsyncHttpClient c2 = new AsyncHttpClient();
 								c2.get("http://evodeployment.evolaris.net/brainwriting/start", params, new AsyncHttpResponseHandler() {

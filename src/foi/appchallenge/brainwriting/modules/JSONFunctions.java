@@ -45,9 +45,11 @@ public class JSONFunctions {
 	
 	
 	public static String getRoundNumber(String targetString){
-		JSONObject jArray = getJSONData(targetString.replace("\"", ""));
+		
 		try {
-			return jArray.get("round").toString();
+			JSONObject json = getJSONData(targetString.replace("\"", ""));
+			int round = json.getInt("round");
+			return String.valueOf(round);
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "0";
