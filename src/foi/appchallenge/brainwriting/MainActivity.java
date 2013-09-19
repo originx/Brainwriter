@@ -46,7 +46,9 @@ public class MainActivity extends ActionBarActivity {
         start.setOnClickListener(new OnClickListener() {	
 			@Override
 			public void onClick(View v) {
-				Toast.makeText(
+				Intent i = new Intent(context, IdeaViewerActivity.class);
+				startActivity(i);
+				/*Toast.makeText(
 						context,
 						"TEST: " + groupName.getText().toString() + " "
 								+ username.getText().toString(),
@@ -83,7 +85,7 @@ public class MainActivity extends ActionBarActivity {
 					checkStatus.execute(groupName.getText().toString());
 					statusText.setText(R.string.connectingText);
 					connecting=true;
-				}	
+				}	*/
 			}
 		});         
     }

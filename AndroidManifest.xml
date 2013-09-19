@@ -34,6 +34,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="foi.appchallenge.brainwriting.MainActivity" />
         </activity>
+        
+        <activity
+            android:name="foi.appchallenge.brainwriting.IdeaViewerActivity"
+       
+            android:theme="@style/Theme.AppCompat.Light" >
+        </activity>
     </application>
 
 </manifest>
