@@ -3,9 +3,12 @@ package foi.appchallenge.brainwriting;
 import foi.appchallenge.helpers.HSVColorPickerDialog;
 import foi.appchallenge.helpers.HSVColorPickerDialog.OnColorSelectedListener;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
@@ -15,8 +18,12 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.OnNavigationListener;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
+import android.text.Layout.Alignment;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -24,6 +31,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -37,6 +45,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 	private Context context;
 	private RadioGroup rgDrawOptions;
 	private ImageButton colorPicker;
+	int selectedColor;
 
 	private ScrollView sv;
 	private HorizontalScrollView hsv;
@@ -53,6 +62,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 
 	private Canvas canvas;
 	private Paint paint;
+	private TextPaint textPaint;
 	private Matrix matrix;
 	private float downx = 0;
 	private float downy = 0;
@@ -61,8 +71,9 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 
 	// TODO create Settings for this so it can be changed
 	private int canvasBackgroundColorId = 0xffffffff;
-	private int brushColorId;
 	private int brushStrokeWidth = 5;
+	private int textSize = 20;
+	String inputTextString = "";
 
 	// coordinates to shift the view by
 	private float shiftX = 0f;
@@ -122,11 +133,17 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		// Fill with some background color
 		canvas.drawColor(canvasBackgroundColorId);
 		colorPicker = (ImageButton)findViewById(R.id.ib_color);
-		colorPicker.setBackgroundColor(0xFF4488CC);
-		brushColorId = 0xFF4488CC;
+		selectedColor = 0xFF4488CC;
+		colorPicker.setBackgroundColor(selectedColor);
+		
+		textPaint = new TextPaint();
+		textPaint.setColor(selectedColor);
+		textPaint.setTextSize(textSize);
+		
 		paint = new Paint();
 		// a lot of options
-		paint.setColor(brushColorId);
+		paint.setTextSize(20);
+		paint.setColor(selectedColor);
 		paint.setStrokeWidth(brushStrokeWidth);
 		paint.setDither(true);
 		paint.setStyle(Paint.Style.STROKE);
@@ -145,12 +162,13 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 			
 			@Override
 			public void onClick(View v) {
-				HSVColorPickerDialog cpd = new HSVColorPickerDialog( IdeaMakerActivity.this, brushColorId, new OnColorSelectedListener() {
+				HSVColorPickerDialog cpd = new HSVColorPickerDialog( IdeaMakerActivity.this, selectedColor, new OnColorSelectedListener() {
 					
 					public void colorSelected(Integer color) {
 						colorPicker.setBackgroundColor(color);
-						brushColorId = color;
-						paint.setColor(brushColorId);
+						selectedColor = color;
+						paint.setColor(selectedColor);
+						textPaint.setColor(selectedColor);
 					}
 				});
 				//cpd.setTitle("Pick a color");
@@ -171,16 +189,15 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 									.show();
 							break;
 						case R.id.rb_brush:
-							Toast.makeText(context, "BRUSH", Toast.LENGTH_SHORT)
-									.show();
+							paint.setColor(selectedColor);
+							paint.setStrokeWidth(brushStrokeWidth);
 							break;
 						case R.id.rb_text:
-							Toast.makeText(context, "TEXT", Toast.LENGTH_SHORT)
-									.show();
+							textPaint.setColor(selectedColor);
 							break;
 						case R.id.rb_eraser:
-							Toast.makeText(context, "ERASER",
-									Toast.LENGTH_SHORT).show();
+							paint.setColor(Color.WHITE);
+							paint.setStrokeWidth(brushStrokeWidth*5);
 							break;
 						
 						default:
@@ -193,12 +210,17 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 			@Override
 			public boolean onDown(MotionEvent e) {
 				// used for drawing on canvas
-				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush) {
+				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush || rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_eraser) {
 					x = e.getX();
 					y = e.getY();
 					canvas.drawPoint(x, y, paint);
 					ivCanvas.invalidate();
 					//Log.d("gestureDetector:onDown", "x: " + x + " y:" + y);
+				}  else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_text){
+					x = e.getX();
+					y = e.getY();
+					showDialogInputText(x,y);
+
 				} else { // if not in brush MOD
 					x = -1;
 					y = -1;
@@ -216,7 +238,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 				if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_hand) {
 					
 					return false;
-				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush) {
+				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush || rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_eraser) {
 					int action = event.getAction();
 					switch (action) {
 					case MotionEvent.ACTION_DOWN:
@@ -242,6 +264,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 					}
 				//return false;
 				}
+				
 				return true; // no scroll case
 			}
 		});
@@ -277,7 +300,7 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 						break;
 					}
 					return true;
-				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush) {
+				} else if (rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_brush || rgDrawOptions.getCheckedRadioButtonId() == R.id.rb_eraser) {
 					int action = event.getAction();
 					switch (action) {
 					case MotionEvent.ACTION_DOWN:
@@ -352,6 +375,40 @@ public class IdeaMakerActivity extends ActionBarActivity  {
 		}
 	}
 
+	public void showDialogInputText(final float xPath, final float yPath){
+		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+		LayoutInflater inflater = getLayoutInflater();
+		View dialogView = inflater.inflate(R.layout.dialog_text_input, null);
+		alert.setView(dialogView);
+		final EditText textInput = (EditText)dialogView.findViewById(R.id.et_text_input);
+
+		alert.setTitle(context.getResources().getString(R.string.dialog_input_text_title));
+		alert.setPositiveButton(context.getResources().getString(R.string.ok),
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						inputTextString = textInput.getText().toString();
+						
+						StaticLayout mTextLayout = new StaticLayout(inputTextString, textPaint, canvas.getWidth(), Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+						canvas.save();
+						canvas.translate(xPath, yPath);
+						mTextLayout.draw(canvas);
+						canvas.restore();
+		
+						//canvas.drawText(inputTextString,xPath, yPath, paint);
+						ivCanvas.invalidate();
+					}
+				});
+		alert.setNegativeButton(
+				context.getResources().getString(R.string.cancel),
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						Toast.makeText(context, "CANCEL", Toast.LENGTH_SHORT)
+						.show();
+					}
+				});
+		alert.show();
+	}
+	
 	/**
 	 * Draw on canvas with brush.
 	 */

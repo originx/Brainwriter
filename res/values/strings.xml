@@ -4,6 +4,8 @@
     <string name="app_name">Brainwriting</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+        <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
 
     
     <!-- MainActivity -->
@@ -20,6 +22,7 @@
     <string name="action_bar_search_hint">Search text &#8230;</string>
     <string name="noUsernameError">Please enter your username</string>
     <string name="noGroupNameError">Please enter a group name</string>
+    <string name="dialog_input_text_title">Enter your text</string>
     
     <!-- Layout: activity_idea_maker.xml -->
     <string name="iv_canvas_description">Canvas</string>
