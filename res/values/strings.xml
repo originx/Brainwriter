@@ -24,6 +24,10 @@
     <!-- Layout: activity_idea_maker.xml -->
     <string name="iv_canvas_description">Canvas</string>
     <string name="iv_search_result_description">Search result</string>
+    <string name="connectText">Press to connect....</string>
+    <string name="groupStartedError">Group already started, please try another group name....</string>
+    <string name="connectingText">Connecting, waiting for other participants....</string>
+    <string name="exitBtnText">Press again to exit...</string>
     
     
 </resources>
