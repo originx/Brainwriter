@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
@@ -50,12 +52,7 @@ public class MainActivity extends ActionBarActivity {
 				// TODO put button for it in action bar
 				//Intent i = new Intent(context, IdeaViewerActivity.class);
 				//startActivity(i);
-				Toast.makeText(
-						context,
-						"TEST: " + groupName.getText().toString() + " "
-								+ username.getText().toString(),
-						Toast.LENGTH_SHORT).show();
-				
+							
 				if(username.getText().toString()==""){
 					Toast.makeText(context, R.string.noUsernameError, Toast.LENGTH_SHORT).show();
 				}else{
@@ -94,6 +91,29 @@ public class MainActivity extends ActionBarActivity {
 		});         
     }
 
+    @Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.main, menu);
+		
+
+		return super.onCreateOptionsMenu(menu);
+	}
+    
+    @Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle presses on the action bar items
+		switch (item.getItemId()) {
+	
+		case R.id.action_idea_gallery:
+			
+			Intent i = new Intent(context, IdeaViewerActivity.class);
+			startActivity(i);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+    
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 	    if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
