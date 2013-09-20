@@ -18,6 +18,7 @@
         <activity
             android:name="foi.appchallenge.brainwriting.MainActivity"
             android:label="@string/app_name"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,6 +29,7 @@
         <activity
             android:name="foi.appchallenge.brainwriting.IdeaMakerActivity"
             android:parentActivityName="foi.appchallenge.brainwriting.MainActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light" >
 
             <!-- Parent activity meta-data to support API level 7+ -->
@@ -39,7 +41,8 @@
         <activity
             android:name="foi.appchallenge.brainwriting.IdeaViewerActivity"
        		android:parentActivityName="foi.appchallenge.brainwriting.MainActivity"
-            android:theme="@style/Theme.AppCompat.Light" >
+            android:theme="@style/Theme.AppCompat.Light"
+            android:screenOrientation="portrait" >
             <!-- Parent activity meta-data to support API level 7+ -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

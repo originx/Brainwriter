@@ -1,8 +1,13 @@
 package foi.appchallenge.brainwriting.types;
 
-
 import java.util.ArrayList;
 
+/**
+ * Idea type of data.
+ * 
+ * @author Josip
+ * 
+ */
 public class Idea {
 	private int id;
 	private String creator;
@@ -10,7 +15,7 @@ public class Idea {
 	private int imageHeight;
 	private String imageName;
 	private ArrayList<Note> notes;
-	
+
 	public Idea(int id, String creator, int imageWidth, int imageHeight,
 			String imageName, ArrayList<Note> notes) {
 		this.id = id;
@@ -68,5 +73,5 @@ public class Idea {
 	public void setNotes(ArrayList<Note> notes) {
 		this.notes = notes;
 	}
-	
+
 }

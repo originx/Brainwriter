@@ -1,12 +1,18 @@
 package foi.appchallenge.brainwriting.types;
 
+/**
+ * Note type of data.
+ * 
+ * @author Josip
+ * 
+ */
 public class Note {
 	private int id;
 	private String noteText;
 	private int ideaId;
 	private int x;
 	private int y;
-	
+
 	public Note(int id, String noteText, int ideaId, int x, int y) {
 		this.id = id;
 		this.noteText = noteText;
@@ -54,8 +60,5 @@ public class Note {
 	public void setY(int y) {
 		this.y = y;
 	}
-	
- 
-	
-	
+
 }
