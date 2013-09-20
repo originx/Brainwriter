@@ -2,6 +2,8 @@ package foi.appchallenge.brainwriting;
 
 import java.io.File;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import foi.appchallenge.brainwriting.asyncTasks.CheckServerStatusTask;
 import foi.appchallenge.brainwriting.interfaces.IResponseListener;
+import foi.appchallenge.brainwriting.services.CountDownTimerService;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -108,9 +111,10 @@ public class MainActivity extends ActionBarActivity {
 		switch (item.getItemId()) {
 	
 		case R.id.action_idea_gallery:
-			
 			Intent i = new Intent(context, IdeaViewerActivity.class);
+			i.putExtra("showCase", 0);
 			startActivity(i);
+	
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -134,7 +138,9 @@ public class MainActivity extends ActionBarActivity {
 		    			if (file.exists())
 		    				file.delete();
 					}
-	    			//TODO kill timer service
+	    			if(isMyServiceRunning()){
+	    				stopService(new Intent(context, CountDownTimerService.class));
+	    			}
 	                finish();
 	            } else {
 	            	if(connecting==true){ //if connecting break it and refresh text
@@ -149,5 +155,17 @@ public class MainActivity extends ActionBarActivity {
 	        }
 	    }
 	    return false;
+	}
+	
+	public boolean isMyServiceRunning() {
+		ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+		for (RunningServiceInfo service : manager
+				.getRunningServices(Integer.MAX_VALUE)) {
+			if (CountDownTimerService.class.getName().equals(
+					service.service.getClassName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

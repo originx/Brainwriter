@@ -4,6 +4,7 @@ import java.io.File;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import foi.appchallenge.brainwriting.adapters.GalleryImageAdapter;
 public class IdeaViewerActivity extends ActionBarActivity {
 	private ImageView selectedImage;
 	private Context context;
+	int caseShow = 0;
 
 	private Integer[] mImageIds = { R.drawable.image1, R.drawable.image2,
 			R.drawable.image3
@@ -38,16 +40,27 @@ public class IdeaViewerActivity extends ActionBarActivity {
 		setContentView(R.layout.activity_idea_viewer);
 
 		context = this;
+		Gallery gallery = (Gallery) findViewById(R.id.gallery);
+		selectedImage = (ImageView) findViewById(R.id.iv_idea);
+		gallery.setSpacing(15);
 		
+		Bundle bundle = getIntent().getExtras();
+		caseShow = bundle.getInt("caseShow");
+		if(caseShow == 0){
+			gallery.setAdapter(new GalleryImageAdapter(this));
+		}
+		else if(caseShow == 1){
+			Toast.makeText(context, "Show previous rounds ideas",
+					Toast.LENGTH_SHORT).show();
+		}
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setDisplayOptions(actionBar.getDisplayOptions()
 				^ ActionBar.DISPLAY_SHOW_TITLE);
 		
-		Gallery gallery = (Gallery) findViewById(R.id.gallery);
-		selectedImage = (ImageView) findViewById(R.id.iv_idea);
-		gallery.setSpacing(15);
-		gallery.setAdapter(new GalleryImageAdapter(this));
+		
+		
+		
 
 		//selectedImage.setImageResource(R.drawable.image1);
 

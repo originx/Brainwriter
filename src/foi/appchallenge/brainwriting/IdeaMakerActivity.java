@@ -58,10 +58,13 @@ import com.loopj.android.http.BinaryHttpResponseHandler;
 import foi.appchallenge.brainwriting.asyncTasks.CheckRoundStatusTask;
 import foi.appchallenge.brainwriting.asyncTasks.GetPreviousIdeasTask;
 import foi.appchallenge.brainwriting.asyncTasks.SubmitIdeasTask;
+import foi.appchallenge.brainwriting.database.IdeaAdapter;
 import foi.appchallenge.brainwriting.interfaces.IResponseListener;
 import foi.appchallenge.brainwriting.modules.JSONFunctions;
 import foi.appchallenge.brainwriting.modules.PostParameters;
 import foi.appchallenge.brainwriting.services.CountDownTimerService;
+import foi.appchallenge.brainwriting.types.Idea;
+import foi.appchallenge.brainwriting.types.Note;
 import foi.appchallenge.helpers.HSVColorPickerDialog;
 import foi.appchallenge.helpers.HSVColorPickerDialog.OnColorSelectedListener;
 
@@ -120,6 +123,12 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private String currentRound;
 
 	MenuItem countdownTimer;
+	
+	int selectedIdea;
+	ArrayList<Note> notes1;
+	ArrayList<Note> notes2;
+	ArrayList<Note> notes3;
+	String username;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -127,6 +136,11 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_idea_maker);
 		context = this;
+		
+		notes1 = new ArrayList<Note>();
+		notes2 = new ArrayList<Note>();
+		notes3 = new ArrayList<Note>();
+		
 		final ActionBar actionBar = getSupportActionBar();
 
 		if (!isMyServiceRunning()) {
@@ -531,9 +545,40 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		 * case R.id.action_search: Toast.makeText(context, "SEARCH",
 		 * Toast.LENGTH_SHORT).show(); return true;
 		 */
+		case R.id.action_previouse_idea_viewer:
+			prefs = PreferenceManager.getDefaultSharedPreferences(context);
+			currentRound = prefs.getString("round", "1");
+			if(currentRound.equals("1")){
+				Toast.makeText(context, "No previous rounds available...", Toast.LENGTH_SHORT)
+				.show();
+			}else{
+				
+				Intent i = new Intent(context, IdeaViewerActivity.class);
+				i.putExtra("showCase", 1);
+				
+				startActivity(i);
+			}
+			return true;
 		case R.id.action_send:
 			if (!submited) {
-
+				IdeaAdapter ia = new IdeaAdapter(context);
+				ia.openToWrite();
+				Idea ideaInfo;
+				if(!notes1.isEmpty()){
+					ideaInfo = new Idea(0, username, CANVAS_PX_WIDTH, CANVAS_PX_HEIGHT, "image1", notes1);
+					ia.insertIdea(ideaInfo);
+				}
+				if(!notes2.isEmpty()){
+					ideaInfo = new Idea(0, username, CANVAS_PX_WIDTH, CANVAS_PX_HEIGHT, "image2", notes2);
+					ia.insertIdea(ideaInfo);
+				}
+				if(!notes3.isEmpty()){
+					ideaInfo = new Idea(0, username, CANVAS_PX_WIDTH, CANVAS_PX_HEIGHT, "image3", notes3);
+					ia.insertIdea(ideaInfo);
+				}
+				
+				
+				ia.close();
 				Toast.makeText(context, "Sending ideas", Toast.LENGTH_SHORT)
 						.show();
 				sendData();
@@ -551,7 +596,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private void sendData() {
 		prefs = PreferenceManager.getDefaultSharedPreferences(context);
 		currentRound = prefs.getString("round", "1");
-		final String username = prefs.getString("username", "");
+		username = prefs.getString("username", "");
 		final String groupName = prefs.getString("groupName", "");
 
 		manageIdeas(previousIdea);
@@ -628,7 +673,15 @@ public class IdeaMakerActivity extends ActionBarActivity {
 						mTextLayout.draw(canvas);
 						canvas.restore();
 
-						// canvas.drawText(inputTextString,xPath, yPath, paint);
+						Note noteInfo = new Note(0, inputTextString, selectedIdea, (int)xPath, (int)yPath);
+						if(selectedIdea == 1){
+							notes1.add(noteInfo);
+						}else if(selectedIdea == 2){
+							notes2.add(noteInfo);
+						}else if(selectedIdea == 3){
+							notes3.add(noteInfo);
+						}
+						
 						ivCanvas.invalidate();
 					}
 				});
