@@ -94,7 +94,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	// TODO create Settings for this so it can be changed
 	private int canvasBackgroundColorId = 0xffffffff;
 	private int brushStrokeWidth = 5;
-	private int textSize = 20;
+	private int textSize = 50;
 
 	String inputTextString = "";
 
