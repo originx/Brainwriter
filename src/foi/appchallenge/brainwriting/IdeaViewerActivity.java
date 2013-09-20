@@ -28,7 +28,12 @@ import foi.appchallenge.brainwriting.adapters.GalleryImageAdapter;
 public class IdeaViewerActivity extends ActionBarActivity {
 	private ImageView selectedImage;
 	private Context context;
+
 private int positionSelec=0;
+
+	int caseShow = 0;
+
+
 	private Integer[] mImageIds = { R.drawable.image1, R.drawable.image2,
 			R.drawable.image3
 
@@ -40,16 +45,27 @@ private int positionSelec=0;
 		setContentView(R.layout.activity_idea_viewer);
 
 		context = this;
+		Gallery gallery = (Gallery) findViewById(R.id.gallery);
+		selectedImage = (ImageView) findViewById(R.id.iv_idea);
+		gallery.setSpacing(15);
 		
+		Bundle bundle = getIntent().getExtras();
+		caseShow = bundle.getInt("caseShow");
+		if(caseShow == 0){
+			gallery.setAdapter(new GalleryImageAdapter(this));
+		}
+		else if(caseShow == 1){
+			Toast.makeText(context, "Show previous rounds ideas",
+					Toast.LENGTH_SHORT).show();
+		}
 		ActionBar actionBar = getSupportActionBar();
 		//actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setDisplayOptions(actionBar.getDisplayOptions()
 				^ ActionBar.DISPLAY_SHOW_TITLE);
 		
-		Gallery gallery = (Gallery) findViewById(R.id.gallery);
-		selectedImage = (ImageView) findViewById(R.id.iv_idea);
-		gallery.setSpacing(15);
-		gallery.setAdapter(new GalleryImageAdapter(this));
+		
+		
+		
 
 		//selectedImage.setImageResource(R.drawable.image1);
 
