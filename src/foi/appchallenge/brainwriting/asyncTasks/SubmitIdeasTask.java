@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.os.AsyncTask;
-import android.util.Log;
 import foi.appchallenge.brainwriting.interfaces.IResponseListener;
 import foi.appchallenge.brainwriting.modules.HttpPostClient;
 import foi.appchallenge.brainwriting.modules.PostParameters;

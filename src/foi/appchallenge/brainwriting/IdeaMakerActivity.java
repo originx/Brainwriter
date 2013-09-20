@@ -48,9 +48,15 @@ import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.SpinnerAdapter;
 import android.widget.Toast;
+
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.BinaryHttpResponseHandler;
+
 import foi.appchallenge.brainwriting.asyncTasks.CheckRoundStatusTask;
+import foi.appchallenge.brainwriting.asyncTasks.GetPreviousIdeasTask;
 import foi.appchallenge.brainwriting.asyncTasks.SubmitIdeasTask;
 import foi.appchallenge.brainwriting.interfaces.IResponseListener;
+import foi.appchallenge.brainwriting.modules.JSONFunctions;
 import foi.appchallenge.brainwriting.modules.PostParameters;
 import foi.appchallenge.brainwriting.services.CountDownTimerService;
 import foi.appchallenge.helpers.HSVColorPickerDialog;
@@ -84,7 +90,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private float downy = 0;
 	private float upx = 0;
 	private float upy = 0;
-	private boolean submited=false;
+	private boolean submited = false;
 	// TODO create Settings for this so it can be changed
 	private int canvasBackgroundColorId = 0xffffffff;
 	private int brushStrokeWidth = 5;
@@ -114,7 +120,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		
+
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_idea_maker);
 		context = this;
@@ -127,7 +133,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		} else {
 			Log.d("SERVICE", "RUNING!");
 		}
-		submited=false;
+		submited = false;
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setDisplayOptions(actionBar.getDisplayOptions()
 				^ ActionBar.DISPLAY_SHOW_TITLE);
@@ -373,8 +379,6 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		SubmitIdeasTask submitIdeas = new SubmitIdeasTask();
 		submitIdeas.setListener(new IResponseListener() {
 
-
-
 			@Override
 			public void responseSuccess(String data) {
 				for (int i = 0; i < 3; i++) {
@@ -393,7 +397,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 				actionBar.setSelectedNavigationItem(0);
 				previousIdea = 0;
-				submited=true;
+				submited = true;
 			}
 
 			@Override
@@ -525,12 +529,14 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		 * Toast.LENGTH_SHORT).show(); return true;
 		 */
 		case R.id.action_send:
-			if(!submited){
-			
-			Toast.makeText(context, "Sending ideas", Toast.LENGTH_SHORT).show();
-			sendData();
-			}else{
-				Toast.makeText(this, R.string.submitedError, Toast.LENGTH_SHORT).show();
+			if (!submited) {
+
+				Toast.makeText(context, "Sending ideas", Toast.LENGTH_SHORT)
+						.show();
+				sendData();
+			} else {
+				Toast.makeText(this, R.string.submitedError, Toast.LENGTH_SHORT)
+						.show();
 			}
 			return true;
 		default:
@@ -541,15 +547,15 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private void sendData() {
 		prefs = PreferenceManager.getDefaultSharedPreferences(context);
 		currentRound = prefs.getString("round", "1");
-		String username = prefs.getString("username", "");
-		String groupName = prefs.getString("groupName", "");
-		
+		final String username = prefs.getString("username", "");
+		final String groupName = prefs.getString("groupName", "");
+
 		manageIdeas(previousIdea);
 		prepareEmptyCanvas();
 		// TODO add text from db here
 		String[] text = { "test1", "test2", "test3" };
 		final ActionBar actionBar = getSupportActionBar();
-		
+
 		uploadFilesResetRound(actionBar, username, groupName, text);
 		prefs = PreferenceManager.getDefaultSharedPreferences(context);
 		currentRound = prefs.getString("round", "1");
@@ -563,12 +569,84 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		chkRound.setListener(new IResponseListener() {
 			@Override
 			public void responseSuccess(String data) {
-				Intent intent = getIntent();
-				overridePendingTransition(0, 0);
-				intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-				finish();
-				overridePendingTransition(0, 0);
-				startActivity(intent);
+
+				GetPreviousIdeasTask getIdeas = new GetPreviousIdeasTask(
+						IdeaMakerActivity.this);
+				getIdeas.setListener(new IResponseListener() {
+
+					@Override
+					public void responseSuccess(String data) {
+
+						String[] images = JSONFunctions.getImageIdeas(data);
+						// get root folder
+						String root = Environment.getExternalStorageDirectory()
+								.toString();
+						final File myDir = new File(root
+								+ "/Brainwriter/download");
+						prefs = PreferenceManager
+								.getDefaultSharedPreferences(context);
+
+						myDir.mkdirs();
+						for (int i = 0; i < images.length; i++) {
+							final String imgName = images[i]
+									.substring(images[i].length() - 1);
+
+							String url = "http://evodeployment.evolaris.net"
+									+ images[i];
+
+							Bitmap b = null;
+							AsyncHttpClient client = new AsyncHttpClient();
+							String[] allowedTypes = new String[] { "image/png" };
+							client.get(url, new BinaryHttpResponseHandler(
+									allowedTypes) {
+								@Override
+								public void onSuccess(byte[] imageData) {
+
+									// create new image file
+									String fname = "image" + imgName + ".png";
+									File file = new File(myDir, fname);
+									// if that file exists delete it to create
+									// new one
+									if (file.exists())
+										file.delete();
+									try {
+										// save file
+										FileOutputStream out = new FileOutputStream(
+												file);
+										bmp.compress(Bitmap.CompressFormat.PNG,
+												90, out);
+										out.flush();
+										out.close();
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								}
+
+								@Override
+								public void onFailure(Throwable e,
+										byte[] imageData) {
+									// Response failed :(
+								}
+							});
+
+						}
+						// TODO get text and save it to db
+						Intent intent = getIntent();
+						overridePendingTransition(0, 0);
+						intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+						finish();
+						overridePendingTransition(0, 0);
+						startActivity(intent);
+					}
+
+					@Override
+					public void responseFail() {
+
+					}
+				});
+				getIdeas.execute(groupName, username);
+				Toast.makeText(context, "Downloading ideas...",
+						Toast.LENGTH_SHORT).show();
 
 			}
 
@@ -740,4 +818,5 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		// save previous position
 		previousIdea = position;
 	}
+
 }

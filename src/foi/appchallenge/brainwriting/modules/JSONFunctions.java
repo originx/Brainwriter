@@ -1,5 +1,7 @@
 package foi.appchallenge.brainwriting.modules;
 
+import java.util.ArrayList;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -55,5 +57,43 @@ public class JSONFunctions {
 			return "0";
 		}
 		
+	}
+	
+	public static String[] getTextIdeas(String targetString){
+		String text1="";
+		String text2="";
+		String text3="";
+		try {
+			   JSONObject json = getJSONData(targetString.replace("\"", ""));
+			   text1= json.getString("text1");
+			    text2 = json.getString("text2");
+			    text3 = json.getString("text3");
+
+			   
+			  } catch (JSONException e) {
+			   e.printStackTrace();
+
+			  }
+		String [] result = {text1,text2,text3};
+		return result;
+	}
+	
+	public static String[] getImageIdeas(String targetString){
+		String image1="";
+		String image2="";
+		String image3="";
+		try {
+			   JSONObject json = getJSONData(targetString.replace("\"", ""));
+			   image1= json.getString("image1");
+			   image2 = json.getString("image2");
+			   image3 = json.getString("image3");
+
+			   
+			  } catch (JSONException e) {
+			   e.printStackTrace();
+
+			  }
+		String [] result = {image1,image2,image3};
+		return result;
 	}
 }

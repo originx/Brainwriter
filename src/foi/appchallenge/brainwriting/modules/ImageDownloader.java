@@ -4,101 +4,60 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import foi.appchallenge.brainwriting.interfaces.ImageLoaderListener;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.os.SystemClock;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 /*
  * here we are going to use an AsyncTask to download the image 
  *      in background while showing the download progress
  * */
 
-public class ImageDownloader extends AsyncTask<Void, Integer, Void> {
+public class ImageDownloader extends AsyncTask<Void, Void, Void> {
 
-	private ProgressBar pb;
+
 	private String url;
 	private Button save;
-	private Context c;
-	private int progress;
+
+
 	private ImageView img;
 	private Bitmap bmp;
-	private TextView percent;
 	private ImageLoaderListener listener;
 
 
+
 	/*--- constructor ---*/
-	public ImageDownloader(String url, ProgressBar pb, Button save,
-			ImageView img, TextView percent, Context c, Bitmap bmp, ImageLoaderListener listener) {
+	public ImageDownloader(String url, Bitmap bmp,ImageLoaderListener imageLoaderListener) {
 	/*--- we need to pass some objects we are going to work with ---*/
 		this.url = url;
-		this.pb = pb;
-		this.save = save;
-		this.c = c;
-		this.img = img;
-		this.percent = percent;
+
+
+
 		this.bmp = bmp;
-		this.listener = listener;
+		this.listener = imageLoaderListener;
 	}
 	
-	/*--- we need this interface for keeping the reference to our Bitmap from the MainActivity. 
-	 *  Otherwise, bmp would be null in our MainActivity*/
-	public interface ImageLoaderListener {
-		
-		void onImageDownloaded(Bitmap bmp);
-		
-		}
+	
 
-	@Override
-	protected void onPreExecute() {
-
-		progress = 0;
-		pb.setVisibility(View.VISIBLE);
-		percent.setVisibility(View.VISIBLE);
-		Toast.makeText(c, "starting download", Toast.LENGTH_SHORT).show();
-
-		super.onPreExecute();
-	}
 
 	@Override
 	protected Void doInBackground(Void... arg0) {
 
 		bmp = getBitmapFromURL(url);
 
-		while (progress < 100) {
-
-			progress += 1;
-
-			publishProgress(progress);
-
-			/*--- an image download usually happens very fast so you would not notice 
-			 * how the ProgressBar jumps from 0 to 100 percent. You can use the method below 
-			 * to visually "slow down" the download and see the progress bein updated ---*/
-
-		  SystemClock.sleep(200);
-
-		}
+	
 
 		return null;
 	}
 
-	@Override
-	protected void onProgressUpdate(Integer... values) {
-
-	/*--- show download progress on main UI thread---*/
-		pb.setProgress(values[0]);
-		percent.setText(values[0] + "%");
-
-		super.onProgressUpdate(values);
-	}
+	
 
 	@Override
 	protected void onPostExecute(Void result) {
@@ -108,7 +67,7 @@ public class ImageDownloader extends AsyncTask<Void, Integer, Void> {
 			}
 		img.setImageBitmap(bmp);
 		save.setEnabled(true);
-		Toast.makeText(c, "download complete", Toast.LENGTH_SHORT).show();
+
 
 		super.onPostExecute(result);
 	}

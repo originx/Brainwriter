@@ -1,9 +1,12 @@
 package foi.appchallenge.brainwriting;
 
+import java.io.File;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.KeyEvent;
@@ -120,6 +123,18 @@ public class MainActivity extends ActionBarActivity {
 	        switch (event.getAction()) {
 	        case KeyEvent.ACTION_DOWN:
 	            if (event.getDownTime() - lastPressedTime < PERIOD) {
+	            	// get root folder
+	    			String root = Environment.getExternalStorageDirectory().toString();
+	    			File myDir = new File(root + "/Brainwriter/my_ideas");
+	    			myDir.mkdirs();
+	    			for (int i = 0; i < 3; i++) {
+	    				String fname = "image" + String.valueOf(i + 1) + ".png";
+		    			File file = new File(myDir, fname);
+		    			// if that file exists delete it to create new one
+		    			if (file.exists())
+		    				file.delete();
+					}
+	    			//TODO kill timer service
 	                finish();
 	            } else {
 	            	if(connecting==true){ //if connecting break it and refresh text
