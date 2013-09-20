@@ -185,9 +185,13 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		sv = (ScrollView) findViewById(R.id.sv);
 		hsv = (HorizontalScrollView) findViewById(R.id.hsv);
 
+		try{
 		byte[] byteArray = getIntent().getByteArrayExtra("image");
 		Bitmap immutableBmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
 		bmp=immutableBmp.copy(Bitmap.Config.ARGB_8888, true);
+		}catch (NullPointerException e){
+			
+		}
 		if(bmp!=null){
 			prepareLoadedCanvas(bmp);
 			imageLoaded=true;
@@ -395,7 +399,8 @@ public class IdeaMakerActivity extends ActionBarActivity {
 			File imgFile = new File(myDir + "/image" + String.valueOf(i + 1)
 					+ ".png");
 			if (imgFile.exists()) {
-				Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile
+				Bitmap mutableBitmap=null;
+				mutableBitmap= BitmapFactory.decodeFile(imgFile
 						.getAbsolutePath());
 				bitmapArray.add(mutableBitmap);
 			}
@@ -618,35 +623,12 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		currentRound = prefs.getString("round", "1");
 		CheckRoundStatusTask chkRound = new CheckRoundStatusTask(this,
 				currentRound);
-		if (isMyServiceRunning()) {
-			stopService(new Intent(context, CountDownTimerService.class));
-			startService(new Intent(context, CountDownTimerService.class));
-		}
+
 		//check current round
 		chkRound.setListener(new IResponseListener() {
 			@Override
 			public void responseSuccess(String data) {
-				if(JSONFunctions.getRoundNumber(data).equals("0")){
-					showResultsAlertDialog(groupName);
-					
-				}else{
-				GetPreviousIdeasTask getIdeas = new GetPreviousIdeasTask(
-						IdeaMakerActivity.this);
-				getIdeas.setListener(new IResponseListener() {
-
-					@Override
-					public void responseSuccess(String data) {
-						Toast.makeText(context, "Downloading ideas...",
-								Toast.LENGTH_SHORT).show();
-						downloadImageIdeas(data,username,groupName);
-					}
-
-					@Override
-					public void responseFail() {
-
-					}
-				});
-				getIdeas.execute(groupName, username);}
+			
 			}
 
 			@Override

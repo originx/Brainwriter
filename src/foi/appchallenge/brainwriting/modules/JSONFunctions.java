@@ -58,6 +58,19 @@ public class JSONFunctions {
 		
 	}
 	
+public static String getRoundNumber2(String targetString){
+		
+		try {
+			 JSONObject json;
+			   json=new JSONObject(targetString);
+			int round = json.getInt("round");
+			return String.valueOf(round);
+		} catch (JSONException e) {
+			return "0";
+		}
+		
+	}
+	
 	public static String[] getTextIdeas(String targetString){
 		String text1="";
 		String text2="";

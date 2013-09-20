@@ -54,10 +54,10 @@ public class CheckRoundStatusTask extends AsyncTask<String, Void, String> {
 				client.get(c,"http://evodeployment.evolaris.net/brainwriting/status", p,new AsyncHttpResponseHandler(){
 					@Override
 				    public void onSuccess(String response) {
-						roundNumber=JSONFunctions.getRoundNumber(response);
+						roundNumber=JSONFunctions.getRoundNumber2(response);
 						}
 				});
-				Thread.sleep(5000); //dont overflood the server, behave nicely
+				Thread.sleep(3000); //dont overflood the server, behave nicely
 			} catch (InterruptedException e) {
 				//Log.d("DEBUG","Interrupted :V");
 			}

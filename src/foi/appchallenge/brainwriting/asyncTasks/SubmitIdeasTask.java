@@ -46,19 +46,22 @@ public class SubmitIdeasTask extends AsyncTask<PostParameters, Void, String> {
 		String [] text = params[0].text;
 		Object [] b = params[0].b;
 		String url = "http://evodeployment.evolaris.net/brainwriting/submit?group="+groupName+"&user="+username;
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
             HttpPostClient client = new HttpPostClient(url);
             String data="";
             try {
 				client.connectForMultipart();
-			
             for (int i = 0; i < text.length; i++) {
     			client.addFormPart("text"+(i+1), text[i]);
     		}
             for (int i = 0; i < b.length; i++) {
-            	Bitmap bmp= (Bitmap)b[i];
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            	Bitmap bmp=null;
+            	bmp=(Bitmap)b[i];
             	bmp.compress(CompressFormat.PNG, 0, baos);
-            	 client.addFilePart("image"+(i+1), "image"+i+1+".png", baos.toByteArray());
+            	client.addFilePart("image"+(i+1), "image"+(i+1)+".png", baos.toByteArray());
+
+            	
             }
             client.finishMultipart();
            data = client.getResponse();
