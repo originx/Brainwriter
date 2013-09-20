@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,12 +22,14 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.OnNavigationListener;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Html;
 import android.text.Layout.Alignment;
 import android.text.StaticLayout;
 import android.text.TextPaint;
@@ -566,11 +569,14 @@ public class IdeaMakerActivity extends ActionBarActivity {
 			stopService(new Intent(context, CountDownTimerService.class));
 			startService(new Intent(context, CountDownTimerService.class));
 		}
-
+		//check current round
 		chkRound.setListener(new IResponseListener() {
 			@Override
 			public void responseSuccess(String data) {
-
+				if(JSONFunctions.getRoundNumber(data).equals("0")){
+					showResultsAlertDialog(groupName);
+					
+				}else{
 				GetPreviousIdeasTask getIdeas = new GetPreviousIdeasTask(
 						IdeaMakerActivity.this);
 				getIdeas.setListener(new IResponseListener() {
@@ -587,9 +593,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 					}
 				});
-				getIdeas.execute(groupName, username);
-				
-
+				getIdeas.execute(groupName, username);}
 			}
 
 			@Override
@@ -802,12 +806,8 @@ public class IdeaMakerActivity extends ActionBarActivity {
 								file.delete();
 							try {
 								 FileOutputStream fos=new FileOutputStream(file);
-
 							        fos.write(imageData);
-							        fos.close();
-								
-								
-								
+							        fos.close();	
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -832,5 +832,21 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		Toast.makeText(context, "Downloading ideas...",
 				Toast.LENGTH_SHORT).show();
 	}
+	public void showResultsAlertDialog(final String groupName) {
+		  AlertDialog alertDialog;
+		  alertDialog = new AlertDialog.Builder(context).create();
 
+		  alertDialog.setTitle(context.getString(R.string.resultsTitle));
+		  alertDialog.setMessage(Html.fromHtml(context.getString(R.string.resultsText)));
+
+		  alertDialog.setButton(Dialog.BUTTON_POSITIVE, context.getString(R.string.ok),
+		    new DialogInterface.OnClickListener() {
+		     public void onClick(DialogInterface dialog, int which) {
+		    	 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://evodeployment.evolaris.net/brainwriting/results?group="+groupName));
+		    	 startActivity(browserIntent);
+		     }
+		    });
+		  alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+		  alertDialog.show();
+		 }
 }

@@ -1,8 +1,13 @@
 package foi.appchallenge.brainwriting;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -44,7 +49,7 @@ public class IdeaViewerActivity extends ActionBarActivity {
 		gallery.setSpacing(15);
 		gallery.setAdapter(new GalleryImageAdapter(this));
 
-		selectedImage.setImageResource(R.drawable.image1);
+		//selectedImage.setImageResource(R.drawable.image1);
 
 		// clicklistener for Gallery
 		gallery.setOnItemClickListener(new OnItemClickListener() {
@@ -54,7 +59,26 @@ public class IdeaViewerActivity extends ActionBarActivity {
 				Toast.makeText(context, "Your selected position = " + position,
 						Toast.LENGTH_SHORT).show();
 				// show the selected Image
-				selectedImage.setImageResource(mImageIds[position]);
+
+				// get root folder
+							String root = Environment.getExternalStorageDirectory().toString();
+							File myDir = new File(root + "/Brainwriter/download");
+							myDir.mkdirs();
+							BitmapFactory.Options options = new BitmapFactory.Options();
+							options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+							// load file if exists
+							File imgFile = new File(myDir + "/image"
+									+ String.valueOf(position + 1) + ".png");
+							if (imgFile.exists()) {
+
+								// if there is a file prepare canvas with loaded image
+								Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile
+										.getAbsolutePath());
+								Bitmap bmp = mutableBitmap.copy(Bitmap.Config.ARGB_8888, true);
+								selectedImage.setImageBitmap(bmp);
+							}else{
+								selectedImage.setImageResource(mImageIds[position]);
+							}
 			}
 
 		});

@@ -36,6 +36,8 @@
     <string name="connectingText">Connecting, waiting for other participants....</string>
     <string name="exitBtnText">Press again to exit...</string>
     <string name="submitedError">You have already submited your ideas... Waiting for round to finish...</string>
+    <string name="resultsTitle">Results available!</string>
+    <string name="resultsText">You are about to see results of your brainwriting!</string>
     
     
 </resources>
