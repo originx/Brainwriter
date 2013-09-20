@@ -534,6 +534,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 				Toast.makeText(context, "Sending ideas", Toast.LENGTH_SHORT)
 						.show();
 				sendData();
+				
 			} else {
 				Toast.makeText(this, R.string.submitedError, Toast.LENGTH_SHORT)
 						.show();
@@ -576,67 +577,9 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 					@Override
 					public void responseSuccess(String data) {
-
-						String[] images = JSONFunctions.getImageIdeas(data);
-						// get root folder
-						String root = Environment.getExternalStorageDirectory()
-								.toString();
-						final File myDir = new File(root
-								+ "/Brainwriter/download");
-						prefs = PreferenceManager
-								.getDefaultSharedPreferences(context);
-
-						myDir.mkdirs();
-						for (int i = 0; i < images.length; i++) {
-							final String imgName = images[i]
-									.substring(images[i].length() - 1);
-
-							String url = "http://evodeployment.evolaris.net"
-									+ images[i];
-
-							Bitmap b = null;
-							AsyncHttpClient client = new AsyncHttpClient();
-							String[] allowedTypes = new String[] { "image/png" };
-							client.get(url, new BinaryHttpResponseHandler(
-									allowedTypes) {
-								@Override
-								public void onSuccess(byte[] imageData) {
-
-									// create new image file
-									String fname = "image" + imgName + ".png";
-									File file = new File(myDir, fname);
-									// if that file exists delete it to create
-									// new one
-									if (file.exists())
-										file.delete();
-									try {
-										// save file
-										FileOutputStream out = new FileOutputStream(
-												file);
-										bmp.compress(Bitmap.CompressFormat.PNG,
-												90, out);
-										out.flush();
-										out.close();
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-
-								@Override
-								public void onFailure(Throwable e,
-										byte[] imageData) {
-									// Response failed :(
-								}
-							});
-
-						}
-						// TODO get text and save it to db
-						Intent intent = getIntent();
-						overridePendingTransition(0, 0);
-						intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-						finish();
-						overridePendingTransition(0, 0);
-						startActivity(intent);
+						Toast.makeText(context, "Downloading ideas...",
+								Toast.LENGTH_SHORT).show();
+						downloadImageIdeas(data,username,groupName);
 					}
 
 					@Override
@@ -645,8 +588,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 					}
 				});
 				getIdeas.execute(groupName, username);
-				Toast.makeText(context, "Downloading ideas...",
-						Toast.LENGTH_SHORT).show();
+				
 
 			}
 
@@ -817,6 +759,78 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		imageLoaded = true;// sets that we loaded image
 		// save previous position
 		previousIdea = position;
+	}
+	
+	public void downloadImageIdeas(String data,String uName, String grpName){
+		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		currentRound = prefs.getString("round", "1");
+		final String username = uName;
+		final String groupName = grpName;
+		
+				String[] images = JSONFunctions.getImageIdeas(data);
+				// get root folder
+				String root = Environment.getExternalStorageDirectory()
+						.toString();
+				final File myDir = new File(root
+						+ "/Brainwriter/download");
+				prefs = PreferenceManager
+						.getDefaultSharedPreferences(context);
+
+				myDir.mkdirs();
+				for (int i = 0; i < images.length; i++) {
+					if(images[i].equals(""))break;
+					final String imgName = images[i]
+							.substring(images[i].length() - 1);
+
+					String url = "http://evodeployment.evolaris.net"
+							+ images[i];
+
+					Bitmap b = null;
+					AsyncHttpClient client = new AsyncHttpClient();
+					String[] allowedTypes = new String[] { "image/png" };
+					client.get(url, new BinaryHttpResponseHandler(
+							allowedTypes) {
+						@Override
+						public void onSuccess(byte[] imageData) {
+
+							// create new image file
+							String fname = "image" + imgName + ".png";
+							File file = new File(myDir, fname);
+							// if that file exists delete it to create
+							// new one
+							if (file.exists())
+								file.delete();
+							try {
+								 FileOutputStream fos=new FileOutputStream(file);
+
+							        fos.write(imageData);
+							        fos.close();
+								
+								
+								
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+
+						@Override
+						public void onFailure(Throwable e,
+								byte[] imageData) {
+							// Response failed :(
+						}
+					});
+
+				}
+				// TODO get text and save it to db
+				Intent intent = getIntent();
+				overridePendingTransition(0, 0);
+				intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+				finish();
+				overridePendingTransition(0, 0);
+				startActivity(intent);
+	
+		Toast.makeText(context, "Downloading ideas...",
+				Toast.LENGTH_SHORT).show();
 	}
 
 }

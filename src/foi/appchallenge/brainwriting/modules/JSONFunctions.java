@@ -83,14 +83,15 @@ public class JSONFunctions {
 		String image2="";
 		String image3="";
 		try {
-			   JSONObject json = getJSONData(targetString.replace("\"", ""));
+			   JSONObject json;
+			   json=new JSONObject(targetString);
 			   image1= json.getString("image1");
 			   image2 = json.getString("image2");
 			   image3 = json.getString("image3");
 
 			   
 			  } catch (JSONException e) {
-			   e.printStackTrace();
+			   
 
 			  }
 		String [] result = {image1,image2,image3};
