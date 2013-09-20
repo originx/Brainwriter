@@ -1,9 +1,11 @@
 package foi.appchallenge.brainwriting;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -26,7 +28,7 @@ import foi.appchallenge.brainwriting.adapters.GalleryImageAdapter;
 public class IdeaViewerActivity extends ActionBarActivity {
 	private ImageView selectedImage;
 	private Context context;
-
+private int positionSelec=0;
 	private Integer[] mImageIds = { R.drawable.image1, R.drawable.image2,
 			R.drawable.image3
 
@@ -40,7 +42,7 @@ public class IdeaViewerActivity extends ActionBarActivity {
 		context = this;
 		
 		ActionBar actionBar = getSupportActionBar();
-		actionBar.setDisplayHomeAsUpEnabled(true);
+		//actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setDisplayOptions(actionBar.getDisplayOptions()
 				^ ActionBar.DISPLAY_SHOW_TITLE);
 		
@@ -58,6 +60,7 @@ public class IdeaViewerActivity extends ActionBarActivity {
 					int position, long id) {
 				Toast.makeText(context, "Your selected position = " + position,
 						Toast.LENGTH_SHORT).show();
+				positionSelec=position;
 				// show the selected Image
 
 				// get root folder
@@ -112,6 +115,44 @@ public class IdeaViewerActivity extends ActionBarActivity {
 			case R.id.action_edit:
 				
 				Toast.makeText(context, "EDIT", Toast.LENGTH_SHORT).show();
+				
+				  // get root folder
+							String root = Environment.getExternalStorageDirectory().toString();
+							File myDir = new File(root + "/Brainwriter/download");
+							myDir.mkdirs();
+							BitmapFactory.Options options = new BitmapFactory.Options();
+							options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+							// load file if exists
+							File imgFile = new File(myDir + "/image"
+									+ String.valueOf(positionSelec + 1) + ".png");
+							if (imgFile.exists()) {
+
+								// if there is a file prepare canvas with loaded image
+								Bitmap mutableBitmap = BitmapFactory.decodeFile(imgFile
+										.getAbsolutePath());
+								Bitmap bmp = mutableBitmap.copy(Bitmap.Config.ARGB_8888, true);
+								//Convert to byte array
+								ByteArrayOutputStream stream = new ByteArrayOutputStream();
+								bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+								byte[] byteArray = stream.toByteArray();
+
+								Intent in1 = new Intent(this, IdeaMakerActivity.class);
+								in1.putExtra("image",byteArray);
+								startActivity(in1);
+							}else{
+								selectedImage.setImageResource(mImageIds[positionSelec]);
+								//Convert to byte array
+								ByteArrayOutputStream stream = new ByteArrayOutputStream();
+								Bitmap bmp = BitmapFactory.decodeResource(getResources(), mImageIds[positionSelec]);
+								bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+								byte[] byteArray = stream.toByteArray();
+
+								Intent in1 = new Intent(this, IdeaMakerActivity.class);
+								in1.putExtra("image",byteArray);
+								startActivity(in1);
+							}
+							
+				//TODO send bitmap via intent
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);

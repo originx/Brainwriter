@@ -38,15 +38,12 @@
                 android:value="foi.appchallenge.brainwriting.MainActivity" />
         </activity>
         
-        <activity
+       <activity
             android:name="foi.appchallenge.brainwriting.IdeaViewerActivity"
-       		android:parentActivityName="foi.appchallenge.brainwriting.MainActivity"
+         
             android:theme="@style/Theme.AppCompat.Light"
             android:screenOrientation="portrait" >
-            <!-- Parent activity meta-data to support API level 7+ -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="foi.appchallenge.brainwriting.MainActivity" />
+         
         </activity>
         <service android:name="foi.appchallenge.brainwriting.services.CountDownTimerService" />
     </application>

@@ -57,7 +57,7 @@ public class CheckRoundStatusTask extends AsyncTask<String, Void, String> {
 						roundNumber=JSONFunctions.getRoundNumber(response);
 						}
 				});
-				Thread.sleep(3000); //dont overflood the server, behave nicely
+				Thread.sleep(5000); //dont overflood the server, behave nicely
 			} catch (InterruptedException e) {
 				//Log.d("DEBUG","Interrupted :V");
 			}

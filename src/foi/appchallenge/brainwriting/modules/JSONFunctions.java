@@ -53,7 +53,6 @@ public class JSONFunctions {
 			int round = json.getInt("round");
 			return String.valueOf(round);
 		} catch (JSONException e) {
-			e.printStackTrace();
 			return "0";
 		}
 		

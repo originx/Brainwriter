@@ -136,6 +136,12 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		} else {
 			Log.d("SERVICE", "RUNING!");
 		}
+		
+		
+
+
+		
+		
 		submited = false;
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setDisplayOptions(actionBar.getDisplayOptions()
@@ -170,6 +176,13 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		sv = (ScrollView) findViewById(R.id.sv);
 		hsv = (HorizontalScrollView) findViewById(R.id.hsv);
 
+		byte[] byteArray = getIntent().getByteArrayExtra("image");
+		Bitmap immutableBmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+		bmp=immutableBmp.copy(Bitmap.Config.ARGB_8888, true);
+		if(bmp!=null){
+			prepareLoadedCanvas(bmp);
+			imageLoaded=true;
+		}
 		if (!imageLoaded || bmp == null) {// if image isnt loaded create new bmp
 			prepareEmptyCanvas();
 		}

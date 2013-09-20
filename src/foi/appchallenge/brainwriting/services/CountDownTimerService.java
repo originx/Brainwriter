@@ -25,7 +25,7 @@ public class CountDownTimerService extends Service {
 
 		    	sendBroadcast(i);
 		    	//coundownTimer.setTitle(millisUntilFinished / 1000);
-		    	Log.d("COUNTDOWN", time);
+
 		    }
 
 		    public void onFinish() {
