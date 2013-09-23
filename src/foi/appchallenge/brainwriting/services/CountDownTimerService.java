@@ -7,7 +7,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 public class CountDownTimerService extends Service {
-    static long TIME_LIMIT = 300000;
+    static long TIME_LIMIT = 30000;
     CountDownTimer Count;
     
     

@@ -121,7 +121,8 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	private SharedPreferences.Editor editor;
 	// current round number
 	private String currentRound;
-
+	//flag for sent data
+	private boolean sentData=false;
 	MenuItem countdownTimer;
 	
 	int selectedIdea;
@@ -545,7 +546,9 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 			countdownTimer.setTitle(intent.getExtras().getString("countdown"));
 			if (intent.getExtras().getString("countdown").equals("Sended!")) {
+				if(sentData==false){
 				sendData();
+				}
 			}
 		}
 	};
@@ -594,7 +597,9 @@ public class IdeaMakerActivity extends ActionBarActivity {
 				ia.close();
 				Toast.makeText(context, "Sending ideas", Toast.LENGTH_SHORT)
 						.show();
+				if(sentData==false){
 				sendData();
+				}
 				
 			} else {
 				Toast.makeText(this, R.string.submitedError, Toast.LENGTH_SHORT)
@@ -607,6 +612,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 	}
 
 	private void sendData() {
+		sentData=true;
 		prefs = PreferenceManager.getDefaultSharedPreferences(context);
 		currentRound = prefs.getString("round", "1");
 		username = prefs.getString("username", "");
@@ -619,8 +625,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		final ActionBar actionBar = getSupportActionBar();
 
 		uploadFilesResetRound(actionBar, username, groupName, text);
-		prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		currentRound = prefs.getString("round", "1");
+		Log.d("RE","Current round:"+currentRound+" username:"+username+" groupname:"+groupName);
 		CheckRoundStatusTask chkRound = new CheckRoundStatusTask(this,
 				currentRound);
 
@@ -628,7 +633,28 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		chkRound.setListener(new IResponseListener() {
 			@Override
 			public void responseSuccess(String data) {
-			
+				Log.d("RE", data);
+				   if(data.equals("0")){
+					            showResultsAlertDialog(groupName);
+					            
+					          }else if(Integer.parseInt(currentRound)<Integer.parseInt(data)){
+					            GetPreviousIdeasTask getIdeas = new GetPreviousIdeasTask(
+					                IdeaMakerActivity.this);
+					            getIdeas.setListener(new IResponseListener() {
+									
+									@Override
+									public void responseSuccess(String data) {
+										Log.d("RE","Data:"+data+" username:"+username+" groupname:"+groupName);
+										downloadImageIdeas(data, username, groupName);
+									}
+									@Override
+									public void responseFail() {
+										// TODO Auto-generated method stub
+									}
+								});
+					            		
+					            		getIdeas.execute(groupName,username);
+					          }
 			}
 
 			@Override
@@ -865,6 +891,14 @@ public class IdeaMakerActivity extends ActionBarActivity {
 
 				}
 				// TODO get text and save it to db
+				//TODO increase round number
+				int rnd=Integer.parseInt(currentRound);
+				rnd++;
+				  //create preferences manager for saving username
+		        prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		        editor = prefs.edit();
+				editor.putString("round", String.valueOf(rnd));
+				editor.commit();
 				Intent intent = getIntent();
 				overridePendingTransition(0, 0);
 				intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);

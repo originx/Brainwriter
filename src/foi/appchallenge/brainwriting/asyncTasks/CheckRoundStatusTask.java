@@ -2,6 +2,7 @@ package foi.appchallenge.brainwriting.asyncTasks;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -39,40 +40,44 @@ public class CheckRoundStatusTask extends AsyncTask<String, Void, String> {
 		super();
 		this.c = c;
 		cRound=currentRound;
+		roundNumber=cRound;
+		running=true;
 	}
 
 	@Override
 	protected String doInBackground(String... params) {
 		
 		String groupName=params[0];
-
+		
 		//while we wait to login and the server responds with 0
-		while(running && roundNumber.equals("0")){
+		while(running && cRound.equals(roundNumber)){
 			try {
+				Thread.sleep(3000); //dont overflood the server, behave nicely
 				final RequestParams p = new RequestParams();
 				 p.put("group",  groupName);
+				
 				client.get(c,"http://evodeployment.evolaris.net/brainwriting/status", p,new AsyncHttpResponseHandler(){
 					@Override
 				    public void onSuccess(String response) {
 						roundNumber=JSONFunctions.getRoundNumber2(response);
 						}
 				});
-				Thread.sleep(3000); //dont overflood the server, behave nicely
+			
 			} catch (InterruptedException e) {
 				//Log.d("DEBUG","Interrupted :V");
 			}
+			Log.d("RE","!:"+roundNumber);
+			
 		}
 		return roundNumber;
+		
 	}
 
 	@Override
 	protected void onPostExecute(String result) {
 		super.onPostExecute(result);
-		if(!result.equals(cRound)){
+			Log.d("RE",roundNumber);
 			clientListener.responseSuccess(roundNumber);
-		}else{
-			clientListener.responseFail();
-		}
 		
 	}
 
