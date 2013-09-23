@@ -142,14 +142,20 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		notes2 = new ArrayList<Note>();
 		notes3 = new ArrayList<Note>();
 		
+		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		currentRound = prefs.getString("round", "1");
+		
+			Toast.makeText(context, "Starting round:"+currentRound, Toast.LENGTH_SHORT)
+			.show();
+		
 		final ActionBar actionBar = getSupportActionBar();
 
 		if (!isMyServiceRunning()) {
 			startService(new Intent(context, CountDownTimerService.class));
 			registerReceiver(uiUpdated, new IntentFilter("COUNTDOWN_UPDATED"));
-			Log.d("SERVICE", "STARTED!");
+			//Log.d("SERVICE", "STARTED!");
 		} else {
-			Log.d("SERVICE", "RUNING!");
+			//Log.d("SERVICE", "RUNING!");
 		}
 
 		submited = false;
@@ -545,7 +551,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		public void onReceive(Context context, Intent intent) {
 
 			countdownTimer.setTitle(intent.getExtras().getString("countdown"));
-			if (intent.getExtras().getString("countdown").equals("Sended!")) {
+			if (intent.getExtras().getString("countdown").equals("Sent!")) {
 				if(sentData==false){
 				sendData();
 				}
@@ -625,7 +631,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		final ActionBar actionBar = getSupportActionBar();
 
 		uploadFilesResetRound(actionBar, username, groupName, text);
-		Log.d("RE","Current round:"+currentRound+" username:"+username+" groupname:"+groupName);
+		//Log.d("RE","Current round:"+currentRound+" username:"+username+" groupname:"+groupName);
 		CheckRoundStatusTask chkRound = new CheckRoundStatusTask(this,
 				currentRound);
 
@@ -633,7 +639,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 		chkRound.setListener(new IResponseListener() {
 			@Override
 			public void responseSuccess(String data) {
-				Log.d("RE", data);
+				//Log.d("RE", data);
 				   if(data.equals("0")){
 					            showResultsAlertDialog(groupName);
 					            
@@ -644,7 +650,7 @@ public class IdeaMakerActivity extends ActionBarActivity {
 									
 									@Override
 									public void responseSuccess(String data) {
-										Log.d("RE","Data:"+data+" username:"+username+" groupname:"+groupName);
+										//Log.d("RE","Data:"+data+" username:"+username+" groupname:"+groupName);
 										downloadImageIdeas(data, username, groupName);
 									}
 									@Override

@@ -4,10 +4,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.CountDownTimer;
 import android.os.IBinder;
-import android.util.Log;
 
 public class CountDownTimerService extends Service {
-    static long TIME_LIMIT = 30000;
+    static long TIME_LIMIT = 300000;
     CountDownTimer Count;
     
     
@@ -31,10 +30,10 @@ public class CountDownTimerService extends Service {
 		    public void onFinish() {
 		    	//coundownTimer.setTitle("Sedned!");
 		    	Intent i = new Intent("COUNTDOWN_UPDATED");
-		    	i.putExtra("countdown","Sended!");
+		    	i.putExtra("countdown","Sent!");
 
 		    	sendBroadcast(i);
-		    	Log.d("COUNTDOWN", "FINISH!");
+		    	//Log.d("COUNTDOWN", "FINISH!");
 		    	stopSelf();
 		    	
 		    }
